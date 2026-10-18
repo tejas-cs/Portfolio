@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tejas Sharma — Full Stack Developer</title>
+<meta name="description" content="Tejas Sharma. Full stack developer. Notes, projects, and a résumé, kept as plainly as possible.">
+<script>
+  // Applied before the stylesheet loads so a returning visitor's saved
+  // theme takes effect immediately, with no flash of the default theme.
+  (function () {
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) {
+      // localStorage can throw in some sandboxed/private-browsing contexts —
+      // fall back to the default 'dark' theme already set on <html>.
+    }
+  })();
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+:root {
+  --bg: #121110;
+  --ink: #F3F1EC;
+  --ink-soft: #C8B896;
+  --line: #322E27;
+  --line-strong: #46403A;
+
+  /* Signature accent — warm brass against the near-black ground, a shade
+     brighter than --ink-soft so the mark reads as brand rather than as
+     muted body text. */
+  --sig: #D9C49A;
+
+  --serif: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --mono: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --measure: 66ch;
+  --gutter: clamp(24px, 6vw, 96px);
+  --rule: 1px solid var(--line);
+}
+
+html[data-theme="light"] {
+  --bg: #F8F8F6;
+  --ink: #111111;
+  --ink-soft: #666666;
+  --line: #D9D9D9;
+  --line-strong: #BFBFBC;
+
+  /* Deep warm sepia — the same brass family, darkened for strong
+     contrast on the off-white ground (~8:1 against #F8F8F6). */
+  --sig: #5A4426;
+}
+
+body {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+.site-header, .site-mark, .preloader-rule::after, .btn, .theme-toggle, .link-btn {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation: none !important; transition: none !important; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--ink); color: var(--bg); }
+
+a { color: var(--ink); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+button, .nav-toggle, .btn { -webkit-tap-highlight-color: transparent; }
+a:focus-visible, button:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+
+.underline-link {
+  background-image: linear-gradient(var(--ink), var(--ink));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 0.35s ease;
+  padding-bottom: 1px;
+}
+.underline-link:hover, .underline-link:focus-visible { background-size: 100% 1px; }
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: 0.002em; margin: 0; }
+p { margin: 0 0 1.1em; }
+p:last-child { margin-bottom: 0; }
+
+/* ---------- header ---------- */
+.site-header {
+  border-bottom: var(--rule); position: sticky; top: 0; left: 0; right: 0;
+  height: 66px; background: var(--bg); z-index: 30;
+  opacity: 0; transform: translateY(-6px); pointer-events: none;
+}
+.site-header.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.site-mark {
+  position: fixed; top: 18px; left: var(--gutter); z-index: 60;
+  height: 32px; display: flex; align-items: center;
+  font-family: var(--serif); font-size: 17px; letter-spacing: 0.01em; color: var(--ink);
+}
+
+/* ---------- signature logo ---------- */
+/* Fixed box dimensions on both instances so the mark reserves its space
+   before the SVG paints — nothing reflows as the stroke draws. */
+.sig-logo { display: block; }
+.sig-logo .sig-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.sig-logo path {
+  fill: var(--sig);
+  stroke: var(--sig);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: fill 0.4s ease, stroke 0.4s ease;
+}
+
+/* signature aspect ratio is 369.09 / 270.803 ≈ 1.363 */
+.sig-logo-mark { height: 30px; width: 41px; }
+.sig-logo-preloader { height: 58px; width: 79px; }
+
+/* Resting state everywhere: the finished signature. The preloader copy and
+   every screen under 1024px never leave this state. */
+.sig-logo path { stroke-dasharray: none; stroke-dashoffset: 0; fill-opacity: 1; }
+
+@media (min-width: 1024px) {
+  /* Desktop only, top-left mark only, and only while the `drawing` class is
+     present — js/the replay timer adds and removes it. Each path carries
+     pathLength="1", so the dash maths is normalised and needs no JS
+     measurement: 1 = undrawn, 0 = fully drawn, whatever the real length. */
+  .sig-logo-mark.drawing path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+    animation:
+      sig-draw 0.85s cubic-bezier(0.62, 0.02, 0.36, 1) forwards,
+      sig-ink 0.55s ease forwards;
+  }
+
+  /* Strokes are sequenced in writing order: T stem, T crossbar, "eja",
+     the j's dot, then "as". Each fill fades in just behind its own
+     outline so the letterform settles as the pen leaves it. */
+  .sig-logo-mark.drawing path:nth-child(1) { animation-delay: 0.15s, 0.70s; }
+  .sig-logo-mark.drawing path:nth-child(2) { animation-delay: 0.60s, 1.15s; }
+  .sig-logo-mark.drawing path:nth-child(3) { animation-delay: 1.05s, 1.60s; }
+  .sig-logo-mark.drawing path:nth-child(4) { animation-delay: 1.85s, 2.25s; }
+  .sig-logo-mark.drawing path:nth-child(5) { animation-delay: 2.05s, 2.60s; }
+
+  @keyframes sig-draw { to { stroke-dashoffset: 0; } }
+  @keyframes sig-ink  { to { fill-opacity: 1; } }
+
+  /* The welcome screen's copy draws itself once, unprompted, as the
+     loading screen appears. It runs a compressed version of the same
+     sequence so it lands before the preloader fades (~1.6s), and it is
+     never replayed — the preloader only exists once per page load. */
+  .sig-logo-preloader path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+    animation:
+      sig-draw 0.5s cubic-bezier(0.62, 0.02, 0.36, 1) forwards,
+      sig-ink 0.35s ease forwards;
+  }
+  .sig-logo-preloader path:nth-child(1) { animation-delay: 0.10s, 0.40s; }
+  .sig-logo-preloader path:nth-child(2) { animation-delay: 0.32s, 0.62s; }
+  .sig-logo-preloader path:nth-child(3) { animation-delay: 0.54s, 0.84s; }
+  .sig-logo-preloader path:nth-child(4) { animation-delay: 0.86s, 1.10s; }
+  .sig-logo-preloader path:nth-child(5) { animation-delay: 0.96s, 1.20s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sig-logo path {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+    fill-opacity: 1 !important;
+    animation: none !important;
+  }
+}
+
+.site-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  max-width: 1180px; margin: 0 auto;
+  padding: 22px calc(var(--gutter) + 46px) 22px var(--gutter);
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: clamp(16px, 3vw, 34px); font-size: 13px;
+  opacity: 0; transform: translateY(-6px); pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.site-nav.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.site-nav a { position: relative; color: var(--ink-soft); }
+.site-nav a:hover { color: var(--ink); }
+.site-nav a.active { color: var(--ink); }
+.nav-underline {
+  position: absolute; left: 0; top: 0; height: 1px; background: var(--ink);
+  width: 0; opacity: 0; pointer-events: none;
+  transition: left 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), top 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), width 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.25s ease, background-color 0.4s ease;
+}
+.nav-underline.visible { opacity: 1; }
+.nav-toggle {
+  display: none; position: fixed; top: 18px; right: calc(var(--gutter) + 46px); z-index: 60;
+  height: 32px; align-items: center; justify-content: center;
+  background: none; border: var(--rule); color: var(--ink);
+  font-family: var(--mono); font-size: 12px; padding: 0 12px;
+}
+
+/* ---------- theme toggle ---------- */
+.theme-toggle {
+  position: fixed; top: 18px; right: var(--gutter); z-index: 60;
+  width: 32px; height: 32px; border: none;
+  background: transparent; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; cursor: pointer;
+}
+.theme-toggle:hover .icon-moon path,
+.theme-toggle:hover .icon-sun circle,
+.theme-toggle:hover .icon-sun line { opacity: 0.65; }
+.theme-toggle svg { width: 18px; height: 18px; display: block; }
+.theme-toggle .icon-moon path { fill: var(--ink); }
+.theme-toggle .icon-sun circle { fill: var(--ink); }
+.theme-toggle .icon-sun line { stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
+html[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+html[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+
+/* ---------- footer ---------- */
+.site-footer { border-top: var(--rule); padding: 40px var(--gutter) 56px; margin-top: 0; }
+.site-footer-inner {
+  max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap;
+  gap: 16px 40px; align-items: baseline; justify-content: space-between;
+}
+.footer-name { font-family: var(--serif); font-size: 16px; }
+.footer-role { color: var(--ink-soft); font-size: 13px; }
+.footer-meta { font-size: 12px; color: var(--ink-soft); }
+.footer-links { display: flex; gap: 20px; font-size: 12px; }
+.footer-links a { color: var(--ink-soft); }
+.footer-links a:hover { color: var(--ink); }
+
+/* ---------- preloader / welcome ---------- */
+#preloader {
+  position: fixed; inset: 0; z-index: 100; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+#preloader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.preloader-mark {
+  font-family: var(--serif); font-size: 15px; letter-spacing: 0.02em; color: var(--ink);
+  margin-bottom: 22px; opacity: 0; animation: preloader-fade 0.5s ease forwards 0.15s;
+}
+.preloader-rule {
+  width: 160px; height: 1px; background: var(--line); position: relative; overflow: hidden;
+}
+.preloader-rule::after {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+  background: var(--ink); animation: preloader-fill 1.1s ease forwards 0.25s;
+}
+.preloader-label {
+  margin-top: 16px; font-size: 11px; color: var(--ink-soft); letter-spacing: 0.04em;
+  opacity: 0; animation: preloader-fade 0.5s ease forwards 0.15s;
+}
+@keyframes preloader-fade { to { opacity: 1; } }
+@keyframes preloader-fill { to { width: 100%; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #preloader { transition: none; }
+  .preloader-mark, .preloader-label { animation: none; opacity: 1; }
+  .preloader-rule::after { animation: none; width: 100%; }
+  .hero-tagline, .hero-name, .hero-rule, .hero-split { opacity: 1 !important; transform: none !important; }
+  .hero-hand { opacity: 0.45 !important; transform: translateY(-50%) !important; -webkit-mask-image: none !important; mask-image: none !important; animation: none !important; }
+}
+
+/* ---------- hero ---------- */
+.hero { min-height: calc(100svh - 66px); display: flex; align-items: center; justify-content: center; padding: 64px var(--gutter); position: relative; overflow: hidden; }
+.hero-inner { position: relative; z-index: 1; width: 100%; max-width: 760px; text-align: center; }
+.hero-tagline {
+  font-size: 12px; color: var(--ink-soft); letter-spacing: 0.14em; text-transform: uppercase;
+}
+.hero-name {
+  font-family: var(--serif); font-weight: 500; text-transform: uppercase; letter-spacing: 0.01em;
+  font-size: clamp(44px, 8vw, 84px); line-height: 1.05; margin: 18px 0 26px;
+}
+.hero-rule { width: 64px; height: 1px; background: var(--line-strong); border: none; margin: 0 auto 44px; }
+.hero-split { display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(20px, 5vw, 56px); text-align: left; margin-top: 8px; }
+.hero-col { padding-top: 4px; }
+.hero-col:first-child { text-align: right; }
+.hero-col-title { font-size: 11px; color: var(--ink-soft); letter-spacing: 0.04em; margin-bottom: 14px; }
+.stack-list, .link-list { list-style: none; margin: 0; padding: 0; font-size: 14px; line-height: 2; }
+.tech-badge { display: none; }
+.hero-divider { width: 1px; background: var(--line); }
+.link-list a { display: inline-block; }
+.hero-foot { margin-top: 70px; font-size: 12px; color: var(--ink-soft); }
+.scroll-cue { margin-top: 34px; font-size: 11px; color: var(--ink-soft); display: inline-block; }
+.scroll-cue:hover, .scroll-cue:focus-visible { color: var(--ink); }
+
+/* entrance: hero content fades/lifts in once the welcome preloader clears.
+   hero-foot and scroll-cue are deliberately left out of this. */
+.hero-tagline, .hero-name, .hero-rule, .hero-split {
+  opacity: 0;
+  animation: hero-fade-up 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation-play-state: paused;
+}
+#home.reveal .hero-tagline { animation-play-state: running; animation-delay: 0s; }
+#home.reveal .hero-name { animation-play-state: running; animation-delay: 0.1s; }
+#home.reveal .hero-rule { animation-play-state: running; animation-delay: 0.2s; }
+#home.reveal .hero-split { animation-play-state: running; animation-delay: 0.32s; }
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- hero hand illustrations (desktop only) ---------- */
+.hero-hand { display: none; }
+
+@media (min-width: 761px) {
+  .hero-hand {
+    display: block; position: absolute; top: 54%; z-index: 0;
+    width: min(26vw, 380px); pointer-events: none;
+    opacity: 0.45; transform: translateY(-50%);
+    animation-play-state: paused;
+  }
+  .hero-hand svg { width: 100%; height: auto; display: block; }
+  .hero-hand path { fill: var(--ink-soft); }
+
+  /* Mirrors the traced artwork back to its correct facing — kept on the
+     svg itself, separate from the wrapper's own position/transform. */
+  .hero-hand svg { transform: scaleX(-1); }
+
+  /* Fade reveal: a soft-edged mask, wider than the element, slides across
+     it. The gradient has a flat transparent zone, a feathered transition
+     band, then a flat opaque zone — sliding it via mask-position sweeps
+     that soft edge across the artwork instead of cutting it with a hard
+     line. Direction still runs base → fingertip: right hand's base sits
+     at the screen edge and its fingers point toward center, so its sweep
+     still runs edge-to-center, just as a fade now instead of a wipe.
+
+     Sizing note: mask-size is set to exactly (element width + feather
+     width) — the minimum that still lets the window sit fully inside the
+     flat zone at both extremes. Any wider and the reveal finishes early,
+     leaving the tail of the animation sitting fully-visible with no
+     visible motion; this sizing keeps the sweep running continuously for
+     the entire 8s, starting the instant the animation begins. */
+  .hero-hand-right {
+    right: 0;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 42%, black 58%, black 100%);
+            mask-image: linear-gradient(to right, transparent 0%, transparent 42%, black 58%, black 100%);
+    -webkit-mask-size: 240% 100%;
+            mask-size: 240% 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: 0% 0;
+            mask-position: 0% 0;
+    animation: hand-fade-right-to-left 8s linear forwards;
+    animation-play-state: paused;
+  }
+  .hero-hand-left {
+    left: 0;
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, transparent 42%, black 58%, black 100%);
+            mask-image: linear-gradient(to left, transparent 0%, transparent 42%, black 58%, black 100%);
+    -webkit-mask-size: 240% 100%;
+            mask-size: 240% 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: 100% 0;
+            mask-position: 100% 0;
+    animation: hand-fade-left-to-right 8s linear forwards;
+    animation-play-state: paused;
+  }
+
+  @keyframes hand-fade-left-to-right {
+    to { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+  }
+  @keyframes hand-fade-right-to-left {
+    to { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  }
+
+  #home.reveal .hero-hand-left,
+  #home.reveal .hero-hand-right {
+    animation-play-state: running;
+  }
+}
+
+/* ---------- section / page headers ---------- */
+.section-block { scroll-margin-top: 66px; }
+.page-head { padding: 88px var(--gutter) 48px; border-top: var(--rule); border-bottom: var(--rule); }
+.page-head-inner { max-width: 1180px; margin: 0 auto; }
+.page-kicker { font-size: 12px; color: var(--ink-soft); margin-bottom: 18px; }
+.page-title { font-family: var(--serif); font-size: clamp(36px, 6vw, 58px); font-weight: 500; }
+.page-dek { margin-top: 18px; max-width: 56ch; color: var(--ink-soft); font-size: 14px; line-height: 1.8; }
+
+/* ---------- essay / about ---------- */
+.essay { padding: 64px var(--gutter) 96px; }
+.essay-inner { max-width: var(--measure); margin: 0 auto; }
+.essay-inner h2 { font-size: 22px; margin-top: 3em; margin-bottom: 0.9em; }
+.essay-inner h2:first-child { margin-top: 0; }
+.essay-inner p { font-size: 14.5px; line-height: 1.85; color: var(--ink); }
+.essay-inner p.lede { font-family: var(--serif); font-size: 21px; line-height: 1.55; color: var(--ink); }
+.dropline { margin: 3.2em 0; border: none; border-top: var(--rule); }
+.note { border-left: 2px solid var(--line-strong); padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; }
+.field-table { width: 100%; border-collapse: collapse; margin: 1.6em 0 2.4em; font-size: 13.5px; }
+.field-table tr { border-top: var(--rule); }
+.field-table tr:last-child { border-bottom: var(--rule); }
+.field-table td { padding: 10px 0; vertical-align: top; }
+.field-table td:first-child { width: 30%; color: var(--ink-soft); }
+
+/* ---------- projects ---------- */
+.entries { padding: 8px var(--gutter) 96px; }
+.entries-inner { max-width: 900px; margin: 0 auto; }
+.entry { padding: 46px 0; border-top: var(--rule); }
+.entries-inner .entry:last-child { border-bottom: var(--rule); }
+.entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; flex-wrap: wrap; }
+.entry-title { font-family: var(--serif); font-size: 24px; font-weight: 500; }
+.entry-year { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+.entry-desc { margin-top: 14px; max-width: 62ch; font-size: 14px; line-height: 1.85; color: var(--ink); }
+.entry-list { margin: 14px 0 0; padding-left: 18px; max-width: 62ch; font-size: 14px; line-height: 1.7; color: var(--ink); }
+.entry-list li { margin-bottom: 6px; }
+.entry-list li:last-child { margin-bottom: 0; }
+.entry-stack { margin-top: 16px; font-size: 12.5px; color: var(--ink-soft); }
+.entry-stack span:not(:last-child)::after { content: " \00B7 "; }
+.entry-links { margin-top: 18px; display: flex; align-items: center; gap: 16px; font-size: 12.5px; }
+.entry-links .link-btn {
+  display: inline-block; border: var(--rule); padding: 6px 14px;
+  color: var(--ink); background: transparent; transition: border-color 0.25s ease;
+}
+.entry-links .link-btn:hover, .entry-links .link-btn:focus-visible { border-color: var(--ink); }
+
+/* ---------- resume ---------- */
+.resume { padding: 8px var(--gutter) 96px; }
+.resume-inner { max-width: 760px; margin: 0 auto; }
+.resume-section { padding: 40px 0; border-top: var(--rule); }
+.resume-inner .resume-section:last-child { border-bottom: var(--rule); }
+.resume-section-title { font-family: var(--serif); font-size: 20px; font-weight: 500; margin-bottom: 26px; }
+.resume-item { margin-bottom: 26px; }
+.resume-item:last-child { margin-bottom: 0; }
+.resume-item-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+.resume-role { font-size: 14.5px; font-weight: 600; }
+.resume-org { color: var(--ink-soft); }
+.resume-date { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+.resume-item ul { margin: 10px 0 0; padding-left: 18px; font-size: 13.5px; line-height: 1.8; color: var(--ink); }
+.resume-item ul li { margin-bottom: 4px; }
+.skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 40px; font-size: 13.5px; }
+.skills-grid dt { color: var(--ink-soft); }
+.skills-grid dd { margin: 2px 0 14px; }
+.print-note { text-align: center; padding: 26px var(--gutter) 0; font-size: 12px; color: var(--ink-soft); }
+.resume-print-header { display: none; }
+.btn { display: inline-block; border: var(--rule); padding: 9px 18px; font-family: var(--mono); font-size: 12.5px; color: var(--ink); background: transparent; cursor: pointer; }
+.btn:hover { border-color: var(--ink); }
+
+/* ---------- contact ---------- */
+.contact-section { padding: 8px var(--gutter) 96px; }
+.contact-grid { max-width: 700px; margin: 0 auto; display: grid; gap: 0; }
+.contact-row { display: flex; justify-content: space-between; padding: 22px 0; border-top: var(--rule); font-size: 14px; }
+.contact-grid .contact-row:last-child { border-bottom: var(--rule); }
+.contact-label { color: var(--ink-soft); }
+
+/* ---------- responsive nav ---------- */
+@media (max-width: 760px) {
+  .hero-split { grid-template-columns: 1fr; text-align: center; gap: 18px; margin-top: 4px; }
+  .hero-divider { display: none; }
+  .hero-col { padding-top: 0; }
+  .hero-col:first-child { text-align: center; }
+  .hero-col:last-child { display: none; }
+  .link-list { line-height: 2.1; }
+
+  .stack-list {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 4px 0; max-width: 280px; margin: 0 auto;
+    font-size: 12.5px; color: var(--ink); line-height: 1.7;
+  }
+  .stack-list li::after { content: "\00B7"; margin: 0 8px; color: var(--line-strong); }
+  .stack-list li:last-child::after { content: none; }
+  .tech-full {
+    position: static; width: auto; height: auto; padding: 0; margin: 0;
+    overflow: visible; clip: auto; white-space: normal; border: 0;
+  }
+  .tech-badge { display: none; }
+
+  /* site-header is now just the decorative bottom-border bar behind the
+     nav — it hides until scroll exactly like on desktop. The actual
+     controls (menu button, dropdown) live outside it, see below. */
+
+  .site-nav {
+    position: fixed; top: 66px; left: 0; right: 0; max-width: none; margin: 0;
+    padding: 0; background: var(--bg); border-bottom: var(--rule);
+    flex-direction: column; align-items: stretch; gap: 0; display: none;
+    opacity: 1 !important; transform: none !important; pointer-events: auto !important;
+  }
+  .site-nav.open { display: flex; }
+  .site-nav a { padding: 14px var(--gutter); border-top: var(--rule); }
+  .site-nav a:first-child { border-top: none; }
+  .nav-toggle { display: flex; }
+
+  .entry-head { flex-direction: column; gap: 6px; }
+}
+
+@media print {
+  :root, html[data-theme="dark"], html[data-theme="light"] {
+    --bg: #ffffff; --ink: #111111; --ink-soft: #555555; --line: #cccccc; --line-strong: #999999;
+  }
+  .site-header, .site-nav, .site-footer, .nav-toggle, .theme-toggle, .site-mark, #home, #about, #projects, #contact { display: none; }
+  #resume { display: block !important; }
+  body { background: #fff; font-size: 12.5px; }
+  .resume-inner { max-width: 100%; }
+
+  /* A dedicated, print-only header (name/role/contact) replaces the
+     on-screen "Résumé" page-head, and the print button itself is
+     obviously not useful inside the PDF it produces. */
+  .resume { padding: 0 34px 16px; }
+  #resume .page-head, .print-note, .resume-web-only { display: none !important; }
+  .resume-print-header { display: block !important; margin-bottom: 10px; }
+  .resume-print-header h1 {
+    font-family: var(--serif); font-size: 22px; font-weight: 500; margin: 0 0 2px;
+  }
+  .resume-print-role { font-size: 11px; color: var(--ink-soft); margin: 0 0 2px; }
+  .resume-print-contact { font-size: 10px; color: var(--ink-soft); margin: 0; }
+
+  /* Compact the section rhythm — the on-screen spacing (40px padding,
+     generous heading margins) is designed for a leisurely scroll, not
+     a page budget, and was spreading six short sections across three
+     mostly-empty pages. */
+  .resume-section { padding: 7px 0; }
+  .resume-section-title { font-size: 13.5px; margin-bottom: 6px; }
+  .resume-item { margin-bottom: 6px; }
+  .resume-item ul { font-size: 10.5px; line-height: 1.4; margin-top: 2px; }
+  .skills-grid { font-size: 10.5px; gap: 2px 30px; }
+  .skills-grid dd { margin: 0 0 4px; }
+  .resume-section p { font-size: 11px; line-height: 1.5; }
+}
+</style>
+</head>
+<body>
+
+<div id="preloader" aria-hidden="true">
+  <div class="preloader-mark"><span class="sig-logo sig-logo-preloader"><svg class="sig-svg" viewBox="360.505 230.356 369.090 270.803" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><g class="sig-strokes"><path d="M 424.19,275.05 C 423.01 277.07, 421.95 280.11, 420.09 285.83 C 418.23 291.54, 417.15 295.63, 414.91 303.61 C 412.66 311.60, 411.15 316.75, 408.87 325.74 C 406.59 334.73, 405.53 339.94, 403.51 348.55 C 401.50 357.15, 400.63 361.55, 398.80 368.77 C 396.96 375.98, 394.93 381.37, 394.35 384.63 C 393.77 387.89, 394.71 388.16, 395.90 385.06 C 397.08 381.96, 398.46 376.38, 400.30 369.15 C 402.13 361.92, 403.02 357.51, 405.06 348.91 C 407.09 340.31, 408.16 335.11, 410.48 326.15 C 412.81 317.20, 414.38 312.06, 416.68 304.12 C 418.98 296.18, 420.14 292.13, 422.00 286.45 C 423.86 280.77, 425.55 278.00, 425.99 275.72 C 426.43 273.44, 425.37 273.03, 424.19 275.05" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 364.83,248.86 C 366.16 248.76, 367.56 248.02, 370.59 246.68 C 373.62 245.34, 375.33 243.93, 379.99 242.16 C 384.64 240.40, 388.03 239.10, 393.87 237.85 C 399.71 236.60, 402.94 236.33, 409.19 235.90 C 415.45 235.46, 419.08 235.51, 425.15 235.68 C 431.22 235.84, 434.36 236.01, 439.55 236.72 C 444.74 237.44, 447.25 238.01, 451.10 239.23 C 454.96 240.46, 456.52 241.72, 458.84 242.85 C 461.16 243.97, 461.66 244.16, 462.72 244.86 C 463.78 245.56, 463.68 246.14, 464.15 246.35 C 464.61 246.55, 465.01 246.51, 465.05 245.88 C 465.09 245.26, 465.24 244.49, 464.34 243.23 C 463.44 241.97, 463.01 240.93, 460.52 239.58 C 458.03 238.22, 456.03 237.52, 451.89 236.47 C 447.75 235.42, 445.18 234.93, 439.85 234.33 C 434.51 233.73, 431.37 233.60, 425.21 233.46 C 419.05 233.32, 415.42 233.27, 409.05 233.64 C 402.68 234.02, 399.38 234.21, 393.36 235.34 C 387.35 236.47, 383.82 237.65, 378.96 239.30 C 374.11 240.95, 372.09 242.00, 369.09 243.59 C 366.09 245.17, 364.81 246.16, 363.95 247.22 C 363.10 248.27, 363.51 248.97, 364.83 248.86" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 457.59,338.03 C 458.05 338.63, 458.73 339.07, 460.15 339.20 C 461.57 339.34, 462.48 339.53, 464.69 338.68 C 466.89 337.84, 468.60 337.06, 471.17 334.98 C 473.74 332.90, 474.94 331.21, 477.54 328.30 C 480.14 325.39, 481.81 323.85, 484.18 320.41 C 486.55 316.98, 487.85 314.99, 489.41 311.12 C 490.97 307.25, 491.75 304.65, 491.99 301.07 C 492.23 297.50, 491.98 295.35, 490.61 293.24 C 489.24 291.14, 487.69 290.20, 485.13 290.55 C 482.57 290.89, 480.73 292.03, 477.82 294.96 C 474.90 297.89, 473.16 300.42, 470.55 305.20 C 467.94 309.98, 466.43 313.26, 464.78 318.85 C 463.13 324.44, 462.39 327.82, 462.29 333.14 C 462.18 338.47, 462.39 341.29, 464.26 345.47 C 466.14 349.65, 467.89 351.61, 471.67 354.06 C 475.45 356.50, 478.01 357.31, 483.17 357.69 C 488.33 358.07, 491.52 357.45, 497.46 355.96 C 503.41 354.46, 506.72 353.46, 512.89 350.22 C 519.07 346.98, 522.40 344.55, 528.34 339.77 C 534.29 335.00, 537.40 331.72, 542.64 326.34 C 547.88 320.96, 550.59 317.91, 554.56 312.87 C 558.53 307.83, 560.58 304.73, 562.49 301.13 C 564.40 297.54, 564.40 295.68, 564.11 294.90 C 563.82 294.13, 562.42 294.42, 561.04 297.27 C 559.65 300.12, 558.74 302.73, 557.20 309.17 C 555.66 315.62, 554.59 320.17, 553.33 329.48 C 552.06 338.78, 551.54 344.75, 550.88 355.71 C 550.22 366.67, 550.19 372.90, 550.01 384.28 C 549.83 395.67, 550.05 401.68, 549.99 412.63 C 549.92 423.57, 550.19 429.28, 549.71 439.02 C 549.22 448.77, 548.96 453.41, 547.58 461.37 C 546.19 469.32, 545.14 472.95, 542.80 478.78 C 540.46 484.62, 538.96 487.22, 535.87 490.54 C 532.78 493.85, 530.85 494.72, 527.36 495.36 C 523.87 496.00, 522.09 495.65, 518.42 493.75 C 514.74 491.85, 512.17 490.41, 509.00 485.87 C 505.82 481.34, 504.02 478.29, 502.54 471.09 C 501.05 463.89, 500.49 459.61, 501.56 449.88 C 502.63 440.15, 503.99 434.17, 507.88 422.43 C 511.78 410.68, 515.45 403.03, 521.03 391.16 C 526.62 379.30, 530.55 372.44, 535.83 363.10 C 541.10 353.75, 545.27 348.27, 547.40 344.42 C 549.53 340.57, 548.97 340.21, 546.46 343.84 C 543.95 347.46, 540.15 353.18, 534.85 362.55 C 529.56 371.91, 525.60 378.76, 519.97 390.66 C 514.34 402.56, 510.69 410.23, 506.72 422.04 C 502.75 433.85, 501.34 439.83, 500.14 449.71 C 498.95 459.59, 499.36 463.95, 500.75 471.44 C 502.15 478.93, 503.83 482.24, 507.13 487.16 C 510.43 492.07, 513.11 493.88, 517.25 496.00 C 521.39 498.13, 523.78 498.59, 527.82 497.79 C 531.86 496.98, 534.13 495.66, 537.46 491.99 C 540.78 488.32, 542.13 485.50, 544.44 479.42 C 546.76 473.35, 547.72 469.68, 549.03 461.61 C 550.35 453.54, 550.57 448.88, 551.01 439.08 C 551.44 429.29, 551.16 423.59, 551.21 412.63 C 551.26 401.68, 551.04 395.67, 551.25 384.30 C 551.47 372.94, 551.51 366.72, 552.27 355.80 C 553.04 344.89, 553.64 338.94, 555.09 329.73 C 556.53 320.53, 557.76 316.05, 559.48 309.76 C 561.21 303.47, 562.91 301.29, 563.72 298.27 C 564.53 295.26, 564.24 294.37, 563.53 294.68 C 562.82 294.99, 562.33 296.42, 560.19 299.80 C 558.06 303.18, 556.65 306.53, 552.87 311.57 C 549.09 316.62, 546.43 319.69, 541.29 325.03 C 536.15 330.38, 533.04 333.63, 527.17 338.30 C 521.30 342.98, 518.01 345.33, 511.96 348.41 C 505.91 351.50, 502.64 352.38, 496.92 353.73 C 491.20 355.09, 488.13 355.55, 483.36 355.18 C 478.59 354.80, 476.43 354.02, 473.08 351.87 C 469.73 349.72, 468.27 348.15, 466.62 344.42 C 464.98 340.68, 464.70 338.16, 464.84 333.21 C 464.99 328.25, 465.67 324.94, 467.34 319.64 C 469.02 314.34, 470.62 311.15, 473.22 306.71 C 475.83 302.27, 477.85 300.09, 480.36 297.44 C 482.88 294.78, 484.25 294.00, 485.78 293.43 C 487.30 292.86, 487.51 293.14, 487.97 294.60 C 488.44 296.06, 488.47 297.67, 488.10 300.72 C 487.73 303.76, 487.49 306.30, 486.13 309.83 C 484.77 313.36, 483.61 315.24, 481.31 318.37 C 479.01 321.50, 477.26 322.97, 474.62 325.48 C 471.98 327.99, 470.52 329.23, 468.10 330.93 C 465.69 332.64, 464.23 333.08, 462.55 334.01 C 460.86 334.95, 460.63 335.18, 459.69 335.62 C 458.75 336.05, 458.27 335.70, 457.85 336.19 C 457.43 336.67, 457.13 337.42, 457.59 338.03" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 568.55,250.55 C 568.87 249.94, 568.48 248.46, 567.90 248.08 C 567.33 247.71, 565.99 248.05, 565.67 248.66 C 565.35 249.27, 565.73 250.75, 566.31 251.13 C 566.89 251.51, 568.23 251.16, 568.55 250.55" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 612.48,306.11 C 611.50 305.61, 610.10 305.37, 607.84 305.59 C 605.58 305.81, 604.10 306.01, 601.18 307.22 C 598.26 308.42, 596.16 309.34, 593.25 311.61 C 590.33 313.88, 588.87 315.35, 586.62 318.58 C 584.36 321.82, 583.38 323.98, 581.98 327.80 C 580.59 331.62, 579.95 333.90, 579.62 337.69 C 579.29 341.47, 579.23 343.64, 580.34 346.71 C 581.45 349.79, 582.61 351.53, 585.15 353.06 C 587.69 354.60, 589.65 354.89, 593.04 354.39 C 596.44 353.89, 598.48 352.96, 602.15 350.56 C 605.81 348.17, 607.85 346.09, 611.38 342.42 C 614.91 338.74, 616.74 336.21, 619.79 332.18 C 622.83 328.16, 624.62 325.74, 626.58 322.31 C 628.54 318.88, 629.27 316.80, 629.59 315.04 C 629.90 313.27, 629.02 312.68, 628.16 313.48 C 627.31 314.29, 626.04 315.91, 625.29 319.07 C 624.54 322.22, 624.46 324.94, 624.40 329.27 C 624.34 333.60, 624.02 336.60, 625.00 340.73 C 625.97 344.86, 626.93 347.09, 629.27 349.91 C 631.61 352.73, 633.20 354.06, 636.72 354.82 C 640.23 355.59, 642.58 355.30, 646.85 353.75 C 651.13 352.20, 653.46 350.66, 658.11 347.08 C 662.75 343.51, 665.39 341.01, 670.07 335.88 C 674.75 330.75, 677.05 327.41, 681.51 321.45 C 685.97 315.49, 688.46 311.58, 692.36 306.07 C 696.26 300.57, 698.16 297.75, 701.01 293.91 C 703.85 290.07, 705.13 288.69, 706.59 286.87 C 708.04 285.05, 707.90 284.56, 708.27 284.81 C 708.65 285.07, 708.00 286.10, 708.45 288.14 C 708.91 290.19, 709.50 291.71, 710.55 295.02 C 711.59 298.33, 712.37 300.27, 713.67 304.68 C 714.97 309.10, 715.68 311.98, 717.05 317.10 C 718.42 322.21, 719.37 325.19, 720.52 330.24 C 721.68 335.29, 722.24 337.94, 722.82 342.35 C 723.40 346.76, 723.62 348.95, 723.42 352.29 C 723.22 355.63, 722.99 356.73, 721.83 359.05 C 720.67 361.36, 719.97 362.40, 717.60 363.86 C 715.23 365.32, 713.34 365.72, 709.97 366.33 C 706.60 366.93, 704.46 367.04, 700.75 366.88 C 697.04 366.72, 694.70 366.29, 691.41 365.54 C 688.11 364.79, 686.63 363.82, 684.27 363.13 C 681.91 362.44, 680.91 362.30, 679.61 362.09 C 678.32 361.89, 678.23 361.96, 677.79 362.11 C 677.35 362.25, 677.26 362.37, 677.42 362.83 C 677.58 363.28, 677.50 363.49, 678.58 364.37 C 679.66 365.25, 680.41 366.20, 682.82 367.21 C 685.22 368.22, 687.04 368.74, 690.60 369.42 C 694.16 370.10, 696.61 370.49, 700.62 370.61 C 704.63 370.73, 706.86 370.74, 710.66 370.02 C 714.45 369.29, 716.74 368.87, 719.60 366.99 C 722.46 365.10, 723.57 363.49, 724.96 360.58 C 726.35 357.67, 726.43 356.16, 726.57 352.44 C 726.70 348.71, 726.32 346.52, 725.64 341.95 C 724.96 337.39, 724.34 334.74, 723.18 329.63 C 722.01 324.52, 721.07 321.55, 719.82 316.39 C 718.58 311.23, 717.98 308.35, 716.94 303.83 C 715.91 299.30, 715.66 297.19, 714.66 293.77 C 713.66 290.36, 713.14 288.82, 711.95 286.75 C 710.77 284.68, 710.23 283.79, 708.74 283.42 C 707.25 283.05, 706.45 283.10, 704.50 284.90 C 702.54 286.71, 701.74 288.46, 698.97 292.45 C 696.20 296.45, 694.46 299.32, 690.64 304.88 C 686.83 310.44, 684.34 314.34, 679.91 320.25 C 675.48 326.16, 673.16 329.46, 668.50 334.42 C 663.83 339.39, 661.12 341.76, 656.59 345.07 C 652.07 348.39, 649.71 349.67, 645.88 350.99 C 642.04 352.31, 640.21 352.31, 637.42 351.67 C 634.63 351.03, 633.70 350.13, 631.94 347.79 C 630.17 345.45, 629.23 343.66, 628.59 339.98 C 627.95 336.31, 628.51 333.47, 628.74 329.42 C 628.98 325.37, 629.58 322.87, 629.78 319.74 C 629.98 316.62, 630.22 314.94, 629.73 313.77 C 629.24 312.60, 628.55 312.55, 627.31 313.89 C 626.07 315.24, 625.50 317.21, 623.51 320.51 C 621.52 323.81, 620.23 326.44, 617.36 330.39 C 614.49 334.34, 612.58 336.81, 609.18 340.27 C 605.77 343.74, 603.66 345.62, 600.32 347.70 C 596.97 349.77, 595.11 350.19, 592.45 350.66 C 589.78 351.13, 588.66 351.09, 586.99 350.06 C 585.31 349.02, 584.79 347.88, 584.06 345.47 C 583.33 343.05, 583.07 341.28, 583.33 337.99 C 583.58 334.71, 584.08 332.47, 585.34 329.03 C 586.60 325.58, 587.56 323.55, 589.64 320.76 C 591.72 317.96, 593.05 316.84, 595.74 315.04 C 598.42 313.25, 600.46 312.87, 603.07 311.80 C 605.67 310.73, 606.85 310.43, 608.78 309.69 C 610.71 308.95, 611.99 308.80, 612.73 308.08 C 613.47 307.37, 613.46 306.61, 612.48 306.11" pathLength="1" vector-effect="non-scaling-stroke"/></g></svg></span></div>
+  <div class="preloader-rule"></div>
+  <div class="preloader-label">loading</div>
+</div>
+
+<a class="site-mark" href="#home" aria-label="Tejas — home"><span class="sig-logo sig-logo-mark"><svg class="sig-svg" viewBox="360.505 230.356 369.090 270.803" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><g class="sig-strokes"><path d="M 424.19,275.05 C 423.01 277.07, 421.95 280.11, 420.09 285.83 C 418.23 291.54, 417.15 295.63, 414.91 303.61 C 412.66 311.60, 411.15 316.75, 408.87 325.74 C 406.59 334.73, 405.53 339.94, 403.51 348.55 C 401.50 357.15, 400.63 361.55, 398.80 368.77 C 396.96 375.98, 394.93 381.37, 394.35 384.63 C 393.77 387.89, 394.71 388.16, 395.90 385.06 C 397.08 381.96, 398.46 376.38, 400.30 369.15 C 402.13 361.92, 403.02 357.51, 405.06 348.91 C 407.09 340.31, 408.16 335.11, 410.48 326.15 C 412.81 317.20, 414.38 312.06, 416.68 304.12 C 418.98 296.18, 420.14 292.13, 422.00 286.45 C 423.86 280.77, 425.55 278.00, 425.99 275.72 C 426.43 273.44, 425.37 273.03, 424.19 275.05" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 364.83,248.86 C 366.16 248.76, 367.56 248.02, 370.59 246.68 C 373.62 245.34, 375.33 243.93, 379.99 242.16 C 384.64 240.40, 388.03 239.10, 393.87 237.85 C 399.71 236.60, 402.94 236.33, 409.19 235.90 C 415.45 235.46, 419.08 235.51, 425.15 235.68 C 431.22 235.84, 434.36 236.01, 439.55 236.72 C 444.74 237.44, 447.25 238.01, 451.10 239.23 C 454.96 240.46, 456.52 241.72, 458.84 242.85 C 461.16 243.97, 461.66 244.16, 462.72 244.86 C 463.78 245.56, 463.68 246.14, 464.15 246.35 C 464.61 246.55, 465.01 246.51, 465.05 245.88 C 465.09 245.26, 465.24 244.49, 464.34 243.23 C 463.44 241.97, 463.01 240.93, 460.52 239.58 C 458.03 238.22, 456.03 237.52, 451.89 236.47 C 447.75 235.42, 445.18 234.93, 439.85 234.33 C 434.51 233.73, 431.37 233.60, 425.21 233.46 C 419.05 233.32, 415.42 233.27, 409.05 233.64 C 402.68 234.02, 399.38 234.21, 393.36 235.34 C 387.35 236.47, 383.82 237.65, 378.96 239.30 C 374.11 240.95, 372.09 242.00, 369.09 243.59 C 366.09 245.17, 364.81 246.16, 363.95 247.22 C 363.10 248.27, 363.51 248.97, 364.83 248.86" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 457.59,338.03 C 458.05 338.63, 458.73 339.07, 460.15 339.20 C 461.57 339.34, 462.48 339.53, 464.69 338.68 C 466.89 337.84, 468.60 337.06, 471.17 334.98 C 473.74 332.90, 474.94 331.21, 477.54 328.30 C 480.14 325.39, 481.81 323.85, 484.18 320.41 C 486.55 316.98, 487.85 314.99, 489.41 311.12 C 490.97 307.25, 491.75 304.65, 491.99 301.07 C 492.23 297.50, 491.98 295.35, 490.61 293.24 C 489.24 291.14, 487.69 290.20, 485.13 290.55 C 482.57 290.89, 480.73 292.03, 477.82 294.96 C 474.90 297.89, 473.16 300.42, 470.55 305.20 C 467.94 309.98, 466.43 313.26, 464.78 318.85 C 463.13 324.44, 462.39 327.82, 462.29 333.14 C 462.18 338.47, 462.39 341.29, 464.26 345.47 C 466.14 349.65, 467.89 351.61, 471.67 354.06 C 475.45 356.50, 478.01 357.31, 483.17 357.69 C 488.33 358.07, 491.52 357.45, 497.46 355.96 C 503.41 354.46, 506.72 353.46, 512.89 350.22 C 519.07 346.98, 522.40 344.55, 528.34 339.77 C 534.29 335.00, 537.40 331.72, 542.64 326.34 C 547.88 320.96, 550.59 317.91, 554.56 312.87 C 558.53 307.83, 560.58 304.73, 562.49 301.13 C 564.40 297.54, 564.40 295.68, 564.11 294.90 C 563.82 294.13, 562.42 294.42, 561.04 297.27 C 559.65 300.12, 558.74 302.73, 557.20 309.17 C 555.66 315.62, 554.59 320.17, 553.33 329.48 C 552.06 338.78, 551.54 344.75, 550.88 355.71 C 550.22 366.67, 550.19 372.90, 550.01 384.28 C 549.83 395.67, 550.05 401.68, 549.99 412.63 C 549.92 423.57, 550.19 429.28, 549.71 439.02 C 549.22 448.77, 548.96 453.41, 547.58 461.37 C 546.19 469.32, 545.14 472.95, 542.80 478.78 C 540.46 484.62, 538.96 487.22, 535.87 490.54 C 532.78 493.85, 530.85 494.72, 527.36 495.36 C 523.87 496.00, 522.09 495.65, 518.42 493.75 C 514.74 491.85, 512.17 490.41, 509.00 485.87 C 505.82 481.34, 504.02 478.29, 502.54 471.09 C 501.05 463.89, 500.49 459.61, 501.56 449.88 C 502.63 440.15, 503.99 434.17, 507.88 422.43 C 511.78 410.68, 515.45 403.03, 521.03 391.16 C 526.62 379.30, 530.55 372.44, 535.83 363.10 C 541.10 353.75, 545.27 348.27, 547.40 344.42 C 549.53 340.57, 548.97 340.21, 546.46 343.84 C 543.95 347.46, 540.15 353.18, 534.85 362.55 C 529.56 371.91, 525.60 378.76, 519.97 390.66 C 514.34 402.56, 510.69 410.23, 506.72 422.04 C 502.75 433.85, 501.34 439.83, 500.14 449.71 C 498.95 459.59, 499.36 463.95, 500.75 471.44 C 502.15 478.93, 503.83 482.24, 507.13 487.16 C 510.43 492.07, 513.11 493.88, 517.25 496.00 C 521.39 498.13, 523.78 498.59, 527.82 497.79 C 531.86 496.98, 534.13 495.66, 537.46 491.99 C 540.78 488.32, 542.13 485.50, 544.44 479.42 C 546.76 473.35, 547.72 469.68, 549.03 461.61 C 550.35 453.54, 550.57 448.88, 551.01 439.08 C 551.44 429.29, 551.16 423.59, 551.21 412.63 C 551.26 401.68, 551.04 395.67, 551.25 384.30 C 551.47 372.94, 551.51 366.72, 552.27 355.80 C 553.04 344.89, 553.64 338.94, 555.09 329.73 C 556.53 320.53, 557.76 316.05, 559.48 309.76 C 561.21 303.47, 562.91 301.29, 563.72 298.27 C 564.53 295.26, 564.24 294.37, 563.53 294.68 C 562.82 294.99, 562.33 296.42, 560.19 299.80 C 558.06 303.18, 556.65 306.53, 552.87 311.57 C 549.09 316.62, 546.43 319.69, 541.29 325.03 C 536.15 330.38, 533.04 333.63, 527.17 338.30 C 521.30 342.98, 518.01 345.33, 511.96 348.41 C 505.91 351.50, 502.64 352.38, 496.92 353.73 C 491.20 355.09, 488.13 355.55, 483.36 355.18 C 478.59 354.80, 476.43 354.02, 473.08 351.87 C 469.73 349.72, 468.27 348.15, 466.62 344.42 C 464.98 340.68, 464.70 338.16, 464.84 333.21 C 464.99 328.25, 465.67 324.94, 467.34 319.64 C 469.02 314.34, 470.62 311.15, 473.22 306.71 C 475.83 302.27, 477.85 300.09, 480.36 297.44 C 482.88 294.78, 484.25 294.00, 485.78 293.43 C 487.30 292.86, 487.51 293.14, 487.97 294.60 C 488.44 296.06, 488.47 297.67, 488.10 300.72 C 487.73 303.76, 487.49 306.30, 486.13 309.83 C 484.77 313.36, 483.61 315.24, 481.31 318.37 C 479.01 321.50, 477.26 322.97, 474.62 325.48 C 471.98 327.99, 470.52 329.23, 468.10 330.93 C 465.69 332.64, 464.23 333.08, 462.55 334.01 C 460.86 334.95, 460.63 335.18, 459.69 335.62 C 458.75 336.05, 458.27 335.70, 457.85 336.19 C 457.43 336.67, 457.13 337.42, 457.59 338.03" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 568.55,250.55 C 568.87 249.94, 568.48 248.46, 567.90 248.08 C 567.33 247.71, 565.99 248.05, 565.67 248.66 C 565.35 249.27, 565.73 250.75, 566.31 251.13 C 566.89 251.51, 568.23 251.16, 568.55 250.55" pathLength="1" vector-effect="non-scaling-stroke"/><path d="M 612.48,306.11 C 611.50 305.61, 610.10 305.37, 607.84 305.59 C 605.58 305.81, 604.10 306.01, 601.18 307.22 C 598.26 308.42, 596.16 309.34, 593.25 311.61 C 590.33 313.88, 588.87 315.35, 586.62 318.58 C 584.36 321.82, 583.38 323.98, 581.98 327.80 C 580.59 331.62, 579.95 333.90, 579.62 337.69 C 579.29 341.47, 579.23 343.64, 580.34 346.71 C 581.45 349.79, 582.61 351.53, 585.15 353.06 C 587.69 354.60, 589.65 354.89, 593.04 354.39 C 596.44 353.89, 598.48 352.96, 602.15 350.56 C 605.81 348.17, 607.85 346.09, 611.38 342.42 C 614.91 338.74, 616.74 336.21, 619.79 332.18 C 622.83 328.16, 624.62 325.74, 626.58 322.31 C 628.54 318.88, 629.27 316.80, 629.59 315.04 C 629.90 313.27, 629.02 312.68, 628.16 313.48 C 627.31 314.29, 626.04 315.91, 625.29 319.07 C 624.54 322.22, 624.46 324.94, 624.40 329.27 C 624.34 333.60, 624.02 336.60, 625.00 340.73 C 625.97 344.86, 626.93 347.09, 629.27 349.91 C 631.61 352.73, 633.20 354.06, 636.72 354.82 C 640.23 355.59, 642.58 355.30, 646.85 353.75 C 651.13 352.20, 653.46 350.66, 658.11 347.08 C 662.75 343.51, 665.39 341.01, 670.07 335.88 C 674.75 330.75, 677.05 327.41, 681.51 321.45 C 685.97 315.49, 688.46 311.58, 692.36 306.07 C 696.26 300.57, 698.16 297.75, 701.01 293.91 C 703.85 290.07, 705.13 288.69, 706.59 286.87 C 708.04 285.05, 707.90 284.56, 708.27 284.81 C 708.65 285.07, 708.00 286.10, 708.45 288.14 C 708.91 290.19, 709.50 291.71, 710.55 295.02 C 711.59 298.33, 712.37 300.27, 713.67 304.68 C 714.97 309.10, 715.68 311.98, 717.05 317.10 C 718.42 322.21, 719.37 325.19, 720.52 330.24 C 721.68 335.29, 722.24 337.94, 722.82 342.35 C 723.40 346.76, 723.62 348.95, 723.42 352.29 C 723.22 355.63, 722.99 356.73, 721.83 359.05 C 720.67 361.36, 719.97 362.40, 717.60 363.86 C 715.23 365.32, 713.34 365.72, 709.97 366.33 C 706.60 366.93, 704.46 367.04, 700.75 366.88 C 697.04 366.72, 694.70 366.29, 691.41 365.54 C 688.11 364.79, 686.63 363.82, 684.27 363.13 C 681.91 362.44, 680.91 362.30, 679.61 362.09 C 678.32 361.89, 678.23 361.96, 677.79 362.11 C 677.35 362.25, 677.26 362.37, 677.42 362.83 C 677.58 363.28, 677.50 363.49, 678.58 364.37 C 679.66 365.25, 680.41 366.20, 682.82 367.21 C 685.22 368.22, 687.04 368.74, 690.60 369.42 C 694.16 370.10, 696.61 370.49, 700.62 370.61 C 704.63 370.73, 706.86 370.74, 710.66 370.02 C 714.45 369.29, 716.74 368.87, 719.60 366.99 C 722.46 365.10, 723.57 363.49, 724.96 360.58 C 726.35 357.67, 726.43 356.16, 726.57 352.44 C 726.70 348.71, 726.32 346.52, 725.64 341.95 C 724.96 337.39, 724.34 334.74, 723.18 329.63 C 722.01 324.52, 721.07 321.55, 719.82 316.39 C 718.58 311.23, 717.98 308.35, 716.94 303.83 C 715.91 299.30, 715.66 297.19, 714.66 293.77 C 713.66 290.36, 713.14 288.82, 711.95 286.75 C 710.77 284.68, 710.23 283.79, 708.74 283.42 C 707.25 283.05, 706.45 283.10, 704.50 284.90 C 702.54 286.71, 701.74 288.46, 698.97 292.45 C 696.20 296.45, 694.46 299.32, 690.64 304.88 C 686.83 310.44, 684.34 314.34, 679.91 320.25 C 675.48 326.16, 673.16 329.46, 668.50 334.42 C 663.83 339.39, 661.12 341.76, 656.59 345.07 C 652.07 348.39, 649.71 349.67, 645.88 350.99 C 642.04 352.31, 640.21 352.31, 637.42 351.67 C 634.63 351.03, 633.70 350.13, 631.94 347.79 C 630.17 345.45, 629.23 343.66, 628.59 339.98 C 627.95 336.31, 628.51 333.47, 628.74 329.42 C 628.98 325.37, 629.58 322.87, 629.78 319.74 C 629.98 316.62, 630.22 314.94, 629.73 313.77 C 629.24 312.60, 628.55 312.55, 627.31 313.89 C 626.07 315.24, 625.50 317.21, 623.51 320.51 C 621.52 323.81, 620.23 326.44, 617.36 330.39 C 614.49 334.34, 612.58 336.81, 609.18 340.27 C 605.77 343.74, 603.66 345.62, 600.32 347.70 C 596.97 349.77, 595.11 350.19, 592.45 350.66 C 589.78 351.13, 588.66 351.09, 586.99 350.06 C 585.31 349.02, 584.79 347.88, 584.06 345.47 C 583.33 343.05, 583.07 341.28, 583.33 337.99 C 583.58 334.71, 584.08 332.47, 585.34 329.03 C 586.60 325.58, 587.56 323.55, 589.64 320.76 C 591.72 317.96, 593.05 316.84, 595.74 315.04 C 598.42 313.25, 600.46 312.87, 603.07 311.80 C 605.67 310.73, 606.85 310.43, 608.78 309.69 C 610.71 308.95, 611.99 308.80, 612.73 308.08 C 613.47 307.37, 613.46 306.61, 612.48 306.11" pathLength="1" vector-effect="non-scaling-stroke"/></g></svg></span></a>
+
+<button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch to light theme" aria-pressed="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <g class="icon-moon">
+      <path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5a8.5 8.5 0 1 0 10.9 10.9Z"/>
+    </g>
+    <g class="icon-sun">
+      <circle cx="12" cy="12" r="4.1"/>
+      <line x1="12" y1="1.6" x2="12" y2="4.2"/>
+      <line x1="12" y1="19.8" x2="12" y2="22.4"/>
+      <line x1="1.6" y1="12" x2="4.2" y2="12"/>
+      <line x1="19.8" y1="12" x2="22.4" y2="12"/>
+      <line x1="4.4" y1="4.4" x2="6.3" y2="6.3"/>
+      <line x1="17.7" y1="17.7" x2="19.6" y2="19.6"/>
+      <line x1="4.4" y1="19.6" x2="6.3" y2="17.7"/>
+      <line x1="17.7" y1="6.3" x2="19.6" y2="4.4"/>
+    </g>
+  </svg>
+</button>
+
+<button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">menu</button>
+<nav class="site-nav" id="primary-nav">
+  <a href="#about"><span class="nav-label">About</span></a>
+  <a href="#projects"><span class="nav-label">Projects</span></a>
+  <a href="#resume"><span class="nav-label">Resume</span></a>
+  <a href="#contact"><span class="nav-label">Contact</span></a>
+  <span class="nav-underline" aria-hidden="true"></span>
+</nav>
+
+<header class="site-header" aria-hidden="true"></header>
+
+<!-- ============ HOME / HERO ============ -->
+<main class="hero" id="home">
+  <div class="hero-hand hero-hand-left" aria-hidden="true"><svg viewBox="0 0 2500 2625.6281407035176" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><path d="M 2487 1106 L 2500 1106 L 2500 1269 L 2299 1269 L 2299 1219 L 2349 1219 L 2349 1206 L 2399 1206 L 2399 1193 L 2412 1193 L 2412 1181 L 2425 1181 L 2425 1168 L 2462 1168 L 2462 1156 L 2475 1156 L 2475 1143 L 2487 1143 L 2487 1131 L 2475 1131 L 2475 1118 L 2487 1118 Z M 1344 1269 L 1407 1269 L 1407 1281 L 1457 1281 L 1457 1294 L 1508 1294 L 1508 1281 L 1545 1281 L 1545 1269 L 1583 1269 L 1583 1281 L 1595 1281 L 1595 1269 L 1621 1269 L 1621 1281 L 1633 1281 L 1633 1294 L 1621 1294 L 1621 1319 L 1633 1319 L 1633 1357 L 1621 1357 L 1621 1382 L 1646 1382 L 1646 1407 L 1621 1407 L 1621 1420 L 1646 1420 L 1646 1432 L 1671 1432 L 1671 1445 L 1721 1445 L 1721 1457 L 1734 1457 L 1734 1445 L 1771 1445 L 1771 1457 L 1809 1457 L 1809 1445 L 1822 1445 L 1822 1457 L 1910 1457 L 1910 1470 L 1947 1470 L 1947 1482 L 1960 1482 L 1960 1470 L 1972 1470 L 1972 1482 L 2073 1482 L 2073 1495 L 2085 1495 L 2085 1482 L 2098 1482 L 2098 1495 L 2111 1495 L 2111 1508 L 2224 1508 L 2224 1520 L 2261 1520 L 2261 1508 L 2374 1508 L 2374 1495 L 2387 1495 L 2387 1482 L 2412 1482 L 2412 1457 L 2437 1457 L 2437 1432 L 2450 1432 L 2450 1420 L 2462 1420 L 2462 1382 L 2487 1382 L 2487 1344 L 2500 1344 L 2500 1746 L 2425 1746 L 2425 1759 L 2337 1759 L 2337 1746 L 2261 1746 L 2261 1734 L 2186 1734 L 2186 1721 L 2123 1721 L 2123 1709 L 2035 1709 L 2035 1696 L 1809 1696 L 1809 1683 L 1709 1683 L 1709 1671 L 1633 1671 L 1633 1658 L 1583 1658 L 1583 1646 L 1533 1646 L 1533 1633 L 1495 1633 L 1495 1621 L 1457 1621 L 1457 1608 L 1407 1608 L 1407 1595 L 1319 1595 L 1319 1608 L 1294 1608 L 1294 1621 L 1281 1621 L 1281 1633 L 1256 1633 L 1256 1646 L 1231 1646 L 1231 1658 L 1219 1658 L 1219 1671 L 1193 1671 L 1193 1683 L 1168 1683 L 1168 1696 L 1156 1696 L 1156 1709 L 1131 1709 L 1131 1721 L 1118 1721 L 1118 1734 L 1093 1734 L 1093 1746 L 1068 1746 L 1068 1759 L 1043 1759 L 1043 1771 L 1018 1771 L 1018 1784 L 967 1784 L 967 1796 L 905 1796 L 905 1784 L 892 1784 L 892 1796 L 879 1796 L 879 1809 L 867 1809 L 867 1822 L 854 1822 L 854 1847 L 842 1847 L 842 1884 L 829 1884 L 829 1960 L 817 1960 L 817 1985 L 804 1985 L 804 1947 L 791 1947 L 791 1935 L 766 1935 L 766 1947 L 754 1947 L 754 1935 L 741 1935 L 741 1947 L 729 1947 L 729 1897 L 741 1897 L 741 1847 L 754 1847 L 754 1834 L 791 1834 L 791 1822 L 804 1822 L 804 1759 L 766 1759 L 766 1746 L 741 1746 L 741 1759 L 729 1759 L 729 1771 L 716 1771 L 716 1784 L 691 1784 L 691 1796 L 678 1796 L 678 1809 L 666 1809 L 666 1834 L 653 1834 L 653 1872 L 641 1872 L 641 1897 L 628 1897 L 628 1935 L 616 1935 L 616 1985 L 603 1985 L 603 2010 L 590 2010 L 590 2023 L 503 2023 L 503 2035 L 465 2035 L 465 2023 L 452 2023 L 452 2010 L 465 2010 L 465 1972 L 477 1972 L 477 1947 L 465 1947 L 465 1935 L 477 1935 L 477 1922 L 465 1922 L 465 1884 L 452 1884 L 452 1910 L 440 1910 L 440 1859 L 452 1859 L 452 1847 L 477 1847 L 477 1822 L 490 1822 L 490 1759 L 452 1759 L 452 1746 L 440 1746 L 440 1734 L 427 1734 L 427 1696 L 440 1696 L 440 1709 L 452 1709 L 452 1696 L 477 1696 L 477 1683 L 503 1683 L 503 1671 L 515 1671 L 515 1683 L 503 1683 L 503 1696 L 490 1696 L 490 1709 L 465 1709 L 465 1721 L 452 1721 L 452 1734 L 503 1734 L 503 1721 L 528 1721 L 528 1709 L 553 1709 L 553 1696 L 578 1696 L 578 1671 L 565 1671 L 565 1646 L 603 1646 L 603 1621 L 590 1621 L 590 1595 L 616 1595 L 616 1621 L 628 1621 L 628 1633 L 666 1633 L 666 1621 L 678 1621 L 678 1608 L 691 1608 L 691 1595 L 716 1595 L 716 1583 L 741 1583 L 741 1570 L 754 1570 L 754 1558 L 766 1558 L 766 1545 L 791 1545 L 791 1533 L 817 1533 L 817 1520 L 829 1520 L 829 1508 L 854 1508 L 854 1495 L 867 1495 L 867 1470 L 879 1470 L 879 1457 L 917 1457 L 917 1520 L 930 1520 L 930 1533 L 955 1533 L 955 1545 L 967 1545 L 967 1533 L 1005 1533 L 1005 1520 L 1018 1520 L 1018 1508 L 1030 1508 L 1030 1495 L 1055 1495 L 1055 1482 L 1043 1482 L 1043 1470 L 1055 1470 L 1055 1457 L 1068 1457 L 1068 1420 L 1080 1420 L 1080 1407 L 1093 1407 L 1093 1394 L 1106 1394 L 1106 1382 L 1093 1382 L 1093 1369 L 1106 1369 L 1106 1357 L 1118 1357 L 1118 1344 L 1168 1344 L 1168 1357 L 1219 1357 L 1219 1344 L 1244 1344 L 1244 1332 L 1256 1332 L 1256 1319 L 1281 1319 L 1281 1307 L 1294 1307 L 1294 1294 L 1307 1294 L 1307 1281 L 1344 1281 Z M 1307 1344 L 1307 1357 L 1294 1357 L 1294 1382 L 1319 1382 L 1319 1369 L 1332 1369 L 1332 1344 Z M 1269 1382 L 1269 1394 L 1281 1394 L 1281 1382 Z M 1608 1394 L 1608 1407 L 1621 1407 L 1621 1394 Z M 1420 1420 L 1420 1432 L 1369 1432 L 1369 1445 L 1432 1445 L 1432 1457 L 1457 1457 L 1457 1445 L 1508 1445 L 1508 1432 L 1520 1432 L 1520 1420 L 1495 1420 L 1495 1432 L 1457 1432 L 1457 1420 Z M 1583 1420 L 1583 1432 L 1608 1432 L 1608 1420 Z M 1683 1457 L 1683 1470 L 1696 1470 L 1696 1457 Z M 766 1633 L 766 1646 L 741 1646 L 741 1658 L 716 1658 L 716 1671 L 729 1671 L 729 1683 L 741 1683 L 741 1696 L 754 1696 L 754 1709 L 766 1709 L 766 1721 L 779 1721 L 779 1734 L 842 1734 L 842 1746 L 854 1746 L 854 1759 L 905 1759 L 905 1746 L 892 1746 L 892 1734 L 879 1734 L 879 1721 L 867 1721 L 867 1696 L 854 1696 L 854 1671 L 842 1671 L 842 1658 L 829 1658 L 829 1646 L 817 1646 L 817 1633 Z M 892 1671 L 892 1683 L 905 1683 L 905 1671 Z M 666 1683 L 666 1696 L 653 1696 L 653 1709 L 641 1709 L 641 1721 L 616 1721 L 616 1734 L 603 1734 L 603 1746 L 590 1746 L 590 1771 L 653 1771 L 653 1759 L 666 1759 L 666 1746 L 678 1746 L 678 1721 L 691 1721 L 691 1696 L 704 1696 L 704 1683 Z M 905 1683 L 905 1709 L 917 1709 L 917 1721 L 930 1721 L 930 1734 L 980 1734 L 980 1721 L 955 1721 L 955 1709 L 942 1709 L 942 1696 L 930 1696 L 930 1683 Z M 565 1796 L 565 1872 L 553 1872 L 553 1884 L 540 1884 L 540 1910 L 553 1910 L 553 1897 L 565 1897 L 565 1884 L 578 1884 L 578 1872 L 590 1872 L 590 1834 L 603 1834 L 603 1822 L 590 1822 L 590 1796 Z M 553 1935 L 553 1947 L 540 1947 L 540 2010 L 553 2010 L 553 1985 L 565 1985 L 565 1935 Z M 465 1319 L 477 1319 L 477 1332 L 503 1332 L 503 1344 L 490 1344 L 490 1357 L 503 1357 L 503 1420 L 515 1420 L 515 1445 L 528 1445 L 528 1457 L 578 1457 L 578 1420 L 590 1420 L 590 1432 L 603 1432 L 603 1445 L 616 1445 L 616 1457 L 628 1457 L 628 1470 L 641 1470 L 641 1482 L 666 1482 L 666 1432 L 653 1432 L 653 1382 L 666 1382 L 666 1369 L 691 1369 L 691 1382 L 704 1382 L 704 1369 L 729 1369 L 729 1382 L 741 1382 L 741 1369 L 804 1369 L 804 1357 L 817 1357 L 817 1344 L 829 1344 L 829 1382 L 817 1382 L 817 1394 L 804 1394 L 804 1407 L 791 1407 L 791 1420 L 766 1420 L 766 1432 L 754 1432 L 754 1445 L 741 1445 L 741 1457 L 729 1457 L 729 1482 L 716 1482 L 716 1495 L 691 1495 L 691 1508 L 678 1508 L 678 1520 L 653 1520 L 653 1533 L 628 1533 L 628 1545 L 603 1545 L 603 1558 L 590 1558 L 590 1583 L 578 1583 L 578 1570 L 540 1570 L 540 1558 L 553 1558 L 553 1545 L 565 1545 L 565 1508 L 553 1508 L 553 1495 L 540 1495 L 540 1482 L 528 1482 L 528 1470 L 503 1470 L 503 1457 L 452 1457 L 452 1445 L 402 1445 L 402 1432 L 188 1432 L 188 1445 L 75 1445 L 75 1432 L 50 1432 L 50 1407 L 138 1407 L 138 1394 L 163 1394 L 163 1382 L 264 1382 L 264 1369 L 276 1369 L 276 1357 L 289 1357 L 289 1344 L 302 1344 L 302 1332 L 314 1332 L 314 1357 L 327 1357 L 327 1369 L 339 1369 L 339 1382 L 364 1382 L 364 1394 L 465 1394 L 465 1382 L 477 1382 L 477 1344 L 465 1344 Z M 678 1457 L 678 1470 L 691 1470 L 691 1457 Z M 2161 1482 L 2173 1482 L 2173 1495 L 2161 1495 Z M 465 1621 L 477 1621 L 477 1633 L 465 1633 Z M 515 1621 L 540 1621 L 540 1646 L 528 1646 L 528 1633 L 515 1633 Z"/></svg></div>
+  <div class="hero-hand hero-hand-right" aria-hidden="true"><svg viewBox="0 0 2500 2602.996254681648" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><path d="M 1273 787 L 1283 787 L 1283 796 L 1273 796 Z M 1301 787 L 1339 787 L 1339 796 L 1301 796 Z M 1348 787 L 1358 787 L 1358 796 L 1348 796 Z M 1367 796 L 1404 796 L 1404 805 L 1376 805 L 1376 815 L 1358 815 L 1358 805 L 1367 805 Z M 1423 805 L 1461 805 L 1461 815 L 1507 815 L 1507 824 L 1526 824 L 1526 833 L 1536 833 L 1536 852 L 1498 852 L 1498 871 L 1507 871 L 1507 880 L 1517 880 L 1517 890 L 1526 890 L 1526 899 L 1517 899 L 1517 908 L 1507 908 L 1507 899 L 1498 899 L 1498 927 L 1507 927 L 1507 936 L 1517 936 L 1517 946 L 1507 946 L 1507 955 L 1489 955 L 1489 936 L 1479 936 L 1479 927 L 1461 927 L 1461 908 L 1433 908 L 1433 890 L 1423 890 L 1423 871 L 1404 871 L 1404 852 L 1414 852 L 1414 833 L 1395 833 L 1395 824 L 1386 824 L 1386 815 L 1423 815 Z M 1573 843 L 1582 843 L 1582 852 L 1573 852 Z M 1526 861 L 1536 861 L 1536 871 L 1526 871 Z M 1629 861 L 1648 861 L 1648 871 L 1676 871 L 1676 880 L 1704 880 L 1704 890 L 1742 890 L 1742 899 L 1779 899 L 1779 908 L 1807 908 L 1807 918 L 1835 918 L 1835 927 L 1845 927 L 1845 918 L 1854 918 L 1854 927 L 1863 927 L 1863 936 L 1882 936 L 1882 946 L 1948 946 L 1948 927 L 1957 927 L 1957 946 L 1994 946 L 1994 955 L 2013 955 L 2013 974 L 2022 974 L 2022 983 L 2032 983 L 2032 993 L 2041 993 L 2041 1002 L 2051 1002 L 2051 1011 L 2060 1011 L 2060 1021 L 2079 1021 L 2079 1030 L 2097 1030 L 2097 1039 L 2116 1039 L 2116 1049 L 2135 1049 L 2135 1058 L 2154 1058 L 2154 1067 L 2172 1067 L 2172 1077 L 2191 1077 L 2191 1086 L 2210 1086 L 2210 1096 L 2228 1096 L 2228 1105 L 2257 1105 L 2257 1114 L 2275 1114 L 2275 1124 L 2294 1124 L 2294 1133 L 2303 1133 L 2303 1142 L 2313 1142 L 2313 1152 L 2322 1152 L 2322 1161 L 2331 1161 L 2331 1170 L 2341 1170 L 2341 1189 L 2350 1189 L 2350 1208 L 2360 1208 L 2360 1227 L 2369 1227 L 2369 1236 L 2378 1236 L 2378 1255 L 2388 1255 L 2388 1264 L 2397 1264 L 2397 1283 L 2406 1283 L 2406 1292 L 2416 1292 L 2416 1301 L 2425 1301 L 2425 1320 L 2434 1320 L 2434 1339 L 2444 1339 L 2444 1358 L 2453 1358 L 2453 1386 L 2463 1386 L 2463 1414 L 2472 1414 L 2472 1423 L 2481 1423 L 2481 1451 L 2425 1451 L 2425 1442 L 2397 1442 L 2397 1433 L 2388 1433 L 2388 1423 L 2378 1423 L 2378 1414 L 2369 1414 L 2369 1395 L 2360 1395 L 2360 1376 L 2350 1376 L 2350 1358 L 2341 1358 L 2341 1348 L 2331 1348 L 2331 1339 L 2322 1339 L 2322 1330 L 2313 1330 L 2313 1320 L 2294 1320 L 2294 1330 L 2285 1330 L 2285 1395 L 2294 1395 L 2294 1433 L 2303 1433 L 2303 1451 L 2313 1451 L 2313 1554 L 2322 1554 L 2322 1601 L 2313 1601 L 2313 1610 L 2275 1610 L 2275 1601 L 2266 1601 L 2266 1592 L 2228 1592 L 2228 1601 L 2219 1601 L 2219 1610 L 2200 1610 L 2200 1601 L 2182 1601 L 2182 1592 L 2172 1592 L 2172 1573 L 2163 1573 L 2163 1498 L 2154 1498 L 2154 1470 L 2144 1470 L 2144 1451 L 2135 1451 L 2135 1442 L 2125 1442 L 2125 1423 L 2116 1423 L 2116 1404 L 2107 1404 L 2107 1386 L 2097 1386 L 2097 1376 L 2088 1376 L 2088 1367 L 2079 1367 L 2079 1348 L 2069 1348 L 2069 1339 L 2060 1339 L 2060 1330 L 2051 1330 L 2051 1320 L 2041 1320 L 2041 1311 L 2032 1311 L 2032 1320 L 2022 1320 L 2022 1433 L 2032 1433 L 2032 1461 L 2041 1461 L 2041 1489 L 2051 1489 L 2051 1526 L 2041 1526 L 2041 1517 L 2032 1517 L 2032 1507 L 2022 1507 L 2022 1498 L 2013 1498 L 2013 1489 L 1994 1489 L 1994 1479 L 1976 1479 L 1976 1489 L 1966 1489 L 1966 1498 L 1957 1498 L 1957 1517 L 1966 1517 L 1966 1526 L 1976 1526 L 1976 1545 L 1994 1545 L 1994 1554 L 2004 1554 L 2004 1564 L 1976 1564 L 1976 1554 L 1938 1554 L 1938 1564 L 1929 1564 L 1929 1582 L 1919 1582 L 1919 1592 L 1910 1592 L 1910 1601 L 1901 1601 L 1901 1592 L 1891 1592 L 1891 1582 L 1882 1582 L 1882 1564 L 1873 1564 L 1873 1517 L 1882 1517 L 1882 1489 L 1891 1489 L 1891 1498 L 1901 1498 L 1901 1489 L 1910 1489 L 1910 1479 L 1919 1479 L 1919 1451 L 1929 1451 L 1929 1442 L 1938 1442 L 1938 1423 L 1929 1423 L 1929 1414 L 1919 1414 L 1919 1395 L 1891 1395 L 1891 1461 L 1901 1461 L 1901 1470 L 1891 1470 L 1891 1461 L 1873 1461 L 1873 1451 L 1882 1451 L 1882 1433 L 1873 1433 L 1873 1386 L 1882 1386 L 1882 1358 L 1863 1358 L 1863 1348 L 1854 1348 L 1854 1339 L 1845 1339 L 1845 1330 L 1835 1330 L 1835 1320 L 1826 1320 L 1826 1311 L 1816 1311 L 1816 1301 L 1788 1301 L 1788 1292 L 1751 1292 L 1751 1301 L 1742 1301 L 1742 1273 L 1751 1273 L 1751 1255 L 1770 1255 L 1770 1236 L 1760 1236 L 1760 1217 L 1751 1217 L 1751 1189 L 1742 1189 L 1742 1161 L 1732 1161 L 1732 1152 L 1723 1152 L 1723 1133 L 1713 1133 L 1713 1114 L 1704 1114 L 1704 1105 L 1695 1105 L 1695 1096 L 1704 1096 L 1704 1086 L 1732 1086 L 1732 1077 L 1742 1077 L 1742 1067 L 1798 1067 L 1798 1077 L 1816 1077 L 1816 1086 L 1835 1086 L 1835 1096 L 1845 1096 L 1845 1105 L 1873 1105 L 1873 1114 L 1863 1114 L 1863 1124 L 1873 1124 L 1873 1142 L 1882 1142 L 1882 1152 L 1901 1152 L 1901 1142 L 1910 1142 L 1910 1133 L 1938 1133 L 1938 1161 L 1957 1161 L 1957 1170 L 1985 1170 L 1985 1180 L 2032 1180 L 2032 1170 L 2079 1170 L 2079 1161 L 2097 1161 L 2097 1152 L 2107 1152 L 2107 1096 L 2088 1096 L 2088 1086 L 2079 1086 L 2079 1077 L 2069 1077 L 2069 1067 L 2060 1067 L 2060 1058 L 2032 1058 L 2032 1039 L 2022 1039 L 2022 1021 L 2013 1021 L 2013 1002 L 1994 1002 L 1994 993 L 1957 993 L 1957 983 L 1938 983 L 1938 993 L 1910 993 L 1910 983 L 1919 983 L 1919 974 L 1901 974 L 1901 964 L 1891 964 L 1891 974 L 1882 974 L 1882 964 L 1854 964 L 1854 955 L 1835 955 L 1835 946 L 1807 946 L 1807 936 L 1779 936 L 1779 927 L 1760 927 L 1760 918 L 1751 918 L 1751 927 L 1742 927 L 1742 918 L 1713 918 L 1713 908 L 1695 908 L 1695 899 L 1667 899 L 1667 890 L 1648 890 L 1648 880 L 1639 880 L 1639 871 L 1629 871 Z M 2116 1114 L 2116 1124 L 2125 1124 L 2125 1114 Z M 2125 1133 L 2125 1152 L 2116 1152 L 2116 1161 L 2097 1161 L 2097 1170 L 2088 1170 L 2088 1180 L 2097 1180 L 2097 1199 L 2125 1199 L 2125 1208 L 2154 1208 L 2154 1217 L 2200 1217 L 2200 1208 L 2210 1208 L 2210 1227 L 2228 1227 L 2228 1217 L 2238 1217 L 2238 1227 L 2247 1227 L 2247 1255 L 2266 1255 L 2266 1273 L 2275 1273 L 2275 1283 L 2313 1283 L 2313 1311 L 2331 1311 L 2331 1320 L 2350 1320 L 2350 1330 L 2341 1330 L 2341 1339 L 2360 1339 L 2360 1358 L 2369 1358 L 2369 1376 L 2378 1376 L 2378 1395 L 2388 1395 L 2388 1404 L 2406 1404 L 2406 1423 L 2434 1423 L 2434 1414 L 2425 1414 L 2425 1404 L 2416 1404 L 2416 1376 L 2406 1376 L 2406 1358 L 2397 1358 L 2397 1330 L 2388 1330 L 2388 1311 L 2378 1311 L 2378 1283 L 2350 1283 L 2350 1236 L 2331 1236 L 2331 1227 L 2322 1227 L 2322 1217 L 2313 1217 L 2313 1208 L 2294 1208 L 2294 1199 L 2257 1199 L 2257 1170 L 2247 1170 L 2247 1161 L 2238 1161 L 2238 1152 L 2200 1152 L 2200 1161 L 2191 1161 L 2191 1152 L 2200 1152 L 2200 1142 L 2172 1142 L 2172 1133 Z M 1863 1142 L 1863 1152 L 1873 1152 L 1873 1142 Z M 2294 1170 L 2294 1189 L 2303 1189 L 2303 1170 Z M 1863 1236 L 1863 1245 L 1835 1245 L 1835 1283 L 1845 1283 L 1845 1292 L 1863 1292 L 1863 1301 L 1873 1301 L 1873 1311 L 1882 1311 L 1882 1320 L 1891 1320 L 1891 1330 L 1919 1330 L 1919 1273 L 1910 1273 L 1910 1255 L 1901 1255 L 1901 1236 Z M 1526 927 L 1536 927 L 1536 936 L 1526 936 Z M 1049 936 L 1067 936 L 1067 946 L 1086 946 L 1086 936 L 1096 936 L 1096 946 L 1105 946 L 1105 936 L 1170 936 L 1170 946 L 1208 946 L 1208 955 L 1264 955 L 1264 964 L 1273 964 L 1273 974 L 1283 974 L 1283 983 L 1301 983 L 1301 993 L 1311 993 L 1311 1002 L 1320 1002 L 1320 1011 L 1330 1011 L 1330 1021 L 1339 1021 L 1339 1049 L 1348 1049 L 1348 1067 L 1358 1067 L 1358 1086 L 1367 1086 L 1367 1096 L 1376 1096 L 1376 1124 L 1395 1124 L 1395 1133 L 1404 1133 L 1404 1152 L 1414 1152 L 1414 1161 L 1442 1161 L 1442 1170 L 1451 1170 L 1451 1180 L 1470 1180 L 1470 1199 L 1479 1199 L 1479 1208 L 1461 1208 L 1461 1199 L 1451 1199 L 1451 1227 L 1442 1227 L 1442 1236 L 1433 1236 L 1433 1227 L 1423 1227 L 1423 1217 L 1414 1217 L 1414 1208 L 1404 1208 L 1404 1189 L 1395 1189 L 1395 1180 L 1386 1180 L 1386 1161 L 1376 1161 L 1376 1152 L 1330 1152 L 1330 1161 L 1292 1161 L 1292 1170 L 1264 1170 L 1264 1180 L 1245 1180 L 1245 1189 L 1227 1189 L 1227 1199 L 1208 1199 L 1208 1208 L 1199 1208 L 1199 1217 L 1180 1217 L 1180 1227 L 1170 1227 L 1170 1236 L 1161 1236 L 1161 1245 L 1142 1245 L 1142 1255 L 1133 1255 L 1133 1264 L 1124 1264 L 1124 1273 L 1114 1273 L 1114 1283 L 1105 1283 L 1105 1292 L 1096 1292 L 1096 1301 L 1086 1301 L 1086 1311 L 1077 1311 L 1077 1320 L 1067 1320 L 1067 1330 L 1058 1330 L 1058 1339 L 1049 1339 L 1049 1348 L 1039 1348 L 1039 1358 L 1030 1358 L 1030 1367 L 1021 1367 L 1021 1376 L 1011 1376 L 1011 1386 L 1002 1386 L 1002 1395 L 983 1395 L 983 1404 L 974 1404 L 974 1414 L 964 1414 L 964 1423 L 955 1423 L 955 1433 L 936 1433 L 936 1442 L 927 1442 L 927 1451 L 908 1451 L 908 1461 L 890 1461 L 890 1470 L 871 1470 L 871 1479 L 852 1479 L 852 1489 L 833 1489 L 833 1498 L 815 1498 L 815 1507 L 796 1507 L 796 1517 L 777 1517 L 777 1526 L 758 1526 L 758 1536 L 740 1536 L 740 1545 L 721 1545 L 721 1554 L 693 1554 L 693 1564 L 674 1564 L 674 1573 L 655 1573 L 655 1582 L 637 1582 L 637 1592 L 618 1592 L 618 1601 L 609 1601 L 609 1610 L 590 1610 L 590 1620 L 581 1620 L 581 1629 L 562 1629 L 562 1639 L 552 1639 L 552 1648 L 534 1648 L 534 1657 L 524 1657 L 524 1667 L 515 1667 L 515 1676 L 496 1676 L 496 1685 L 487 1685 L 487 1695 L 468 1695 L 468 1704 L 459 1704 L 459 1713 L 440 1713 L 440 1723 L 431 1723 L 431 1732 L 412 1732 L 412 1742 L 393 1742 L 393 1751 L 375 1751 L 375 1760 L 356 1760 L 356 1770 L 337 1770 L 337 1779 L 309 1779 L 309 1788 L 290 1788 L 290 1798 L 262 1798 L 262 1807 L 234 1807 L 234 1816 L 206 1816 L 206 1826 L 178 1826 L 178 1835 L 112 1835 L 112 1845 L 0 1845 L 0 1610 L 47 1610 L 47 1620 L 56 1620 L 56 1610 L 103 1610 L 103 1592 L 131 1592 L 131 1573 L 150 1573 L 150 1564 L 197 1564 L 197 1573 L 225 1573 L 225 1564 L 253 1564 L 253 1554 L 262 1554 L 262 1545 L 272 1545 L 272 1536 L 290 1536 L 290 1507 L 281 1507 L 281 1479 L 272 1479 L 272 1461 L 281 1461 L 281 1451 L 290 1451 L 290 1442 L 337 1442 L 337 1433 L 356 1433 L 356 1414 L 365 1414 L 365 1395 L 375 1395 L 375 1386 L 403 1386 L 403 1367 L 412 1367 L 412 1348 L 431 1348 L 431 1339 L 468 1339 L 468 1311 L 478 1311 L 478 1301 L 515 1301 L 515 1311 L 524 1311 L 524 1301 L 543 1301 L 543 1292 L 590 1292 L 590 1283 L 637 1283 L 637 1273 L 655 1273 L 655 1264 L 674 1264 L 674 1255 L 712 1255 L 712 1245 L 730 1245 L 730 1236 L 740 1236 L 740 1227 L 749 1227 L 749 1217 L 758 1217 L 758 1208 L 777 1208 L 777 1199 L 787 1199 L 787 1189 L 805 1189 L 805 1180 L 815 1180 L 815 1161 L 824 1161 L 824 1152 L 833 1152 L 833 1142 L 843 1142 L 843 1133 L 852 1133 L 852 1096 L 871 1096 L 871 1086 L 890 1086 L 890 1067 L 899 1067 L 899 1058 L 880 1058 L 880 1039 L 899 1039 L 899 1030 L 908 1030 L 908 1011 L 936 1011 L 936 1002 L 946 1002 L 946 993 L 964 993 L 964 983 L 983 983 L 983 974 L 993 974 L 993 964 L 1011 964 L 1011 955 L 1021 955 L 1021 946 L 1030 946 L 1030 955 L 1039 955 L 1039 946 L 1049 946 Z M 1433 1180 L 1433 1189 L 1442 1189 L 1442 1180 Z M 1414 1189 L 1414 1199 L 1423 1199 L 1423 1189 Z M 1433 1217 L 1433 1227 L 1442 1227 L 1442 1217 Z M 309 1451 L 309 1461 L 318 1461 L 318 1451 Z M 150 1582 L 150 1592 L 159 1592 L 159 1582 Z M 861 1049 L 871 1049 L 871 1058 L 861 1058 Z M 1489 1208 L 1498 1208 L 1498 1217 L 1507 1217 L 1507 1227 L 1517 1227 L 1517 1236 L 1526 1236 L 1526 1245 L 1536 1245 L 1536 1255 L 1554 1255 L 1554 1245 L 1564 1245 L 1564 1236 L 1582 1236 L 1582 1264 L 1592 1264 L 1592 1283 L 1601 1283 L 1601 1292 L 1610 1292 L 1610 1301 L 1620 1301 L 1620 1311 L 1592 1311 L 1592 1301 L 1582 1301 L 1582 1283 L 1573 1283 L 1573 1311 L 1554 1311 L 1554 1301 L 1536 1301 L 1536 1292 L 1507 1292 L 1507 1283 L 1498 1283 L 1498 1273 L 1479 1273 L 1479 1264 L 1470 1264 L 1470 1255 L 1498 1255 L 1498 1245 L 1479 1245 L 1479 1217 L 1489 1217 Z M 1554 1255 L 1554 1264 L 1564 1264 L 1564 1255 Z M 1564 1264 L 1564 1283 L 1573 1283 L 1573 1264 Z M 112 1283 L 131 1283 L 131 1301 L 122 1301 L 122 1292 L 112 1292 Z M 0 1292 L 28 1292 L 28 1301 L 56 1301 L 56 1311 L 84 1311 L 84 1301 L 94 1301 L 94 1311 L 103 1311 L 103 1330 L 112 1330 L 112 1320 L 131 1320 L 131 1330 L 122 1330 L 122 1339 L 94 1339 L 94 1348 L 103 1348 L 103 1376 L 66 1376 L 66 1386 L 56 1386 L 56 1376 L 28 1376 L 28 1386 L 19 1386 L 19 1376 L 9 1376 L 9 1367 L 0 1367 L 0 1339 L 19 1339 L 19 1348 L 37 1348 L 37 1339 L 56 1339 L 56 1330 L 0 1330 Z M 150 1311 L 159 1311 L 159 1330 L 140 1330 L 140 1320 L 150 1320 Z M 1629 1311 L 1648 1311 L 1648 1320 L 1629 1320 Z M 1676 1330 L 1704 1330 L 1704 1339 L 1676 1339 Z M 131 1358 L 150 1358 L 150 1367 L 159 1367 L 159 1376 L 140 1376 L 140 1367 L 131 1367 Z M 1826 1404 L 1835 1404 L 1835 1414 L 1826 1414 Z M 1854 1442 L 1863 1442 L 1863 1451 L 1854 1451 Z M 253 1517 L 262 1517 L 262 1536 L 253 1536 Z M 2041 1545 L 2051 1545 L 2051 1564 L 2041 1564 L 2041 1573 L 2032 1573 L 2032 1554 L 2041 1554 Z M 9 1564 L 19 1564 L 19 1582 L 28 1582 L 28 1564 L 37 1564 L 37 1582 L 47 1582 L 47 1592 L 19 1592 L 19 1582 L 9 1582 Z"/></svg></div>
+  <div class="hero-inner">
+    <p class="hero-tagline">Full Stack Developer — India</p>
+    <h1 class="hero-name">Tejas Sharma</h1>
+    <hr class="hero-rule">
+
+    <div class="hero-split">
+      <div class="hero-col">
+        <p class="hero-col-title">works with</p>
+        <ul class="stack-list">
+          <li><span class="tech-full">React</span><span class="tech-badge" aria-hidden="true">Re</span></li>
+          <li><span class="tech-full">Node.js</span><span class="tech-badge" aria-hidden="true">Nd</span></li>
+          <li><span class="tech-full">Express.js</span><span class="tech-badge" aria-hidden="true">Ex</span></li>
+          <li><span class="tech-full">MongoDB</span><span class="tech-badge" aria-hidden="true">Mo</span></li>
+          <li><span class="tech-full">JavaScript</span><span class="tech-badge" aria-hidden="true">Js</span></li>
+          <li><span class="tech-full">Redux</span><span class="tech-badge" aria-hidden="true">Rx</span></li>
+          <li><span class="tech-full">MySQL</span><span class="tech-badge" aria-hidden="true">Sq</span></li>
+          <li><span class="tech-full">Git</span><span class="tech-badge" aria-hidden="true">Gt</span></li>
+        </ul>
+      </div>
+
+      <div class="hero-divider" aria-hidden="true"></div>
+
+      <div class="hero-col">
+        <p class="hero-col-title">find</p>
+        <ul class="link-list">
+          <li><a class="underline-link" href="#about">About</a></li>
+          <li><a class="underline-link" href="#projects">Projects</a></li>
+          <li><a class="underline-link" href="#resume">Resume</a></li>
+          <li><a class="underline-link" href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="hero-foot">B.Tech CSE (AI) — graduating July 2026, open to full-time roles.</p>
+    <a class="scroll-cue underline-link" href="#about">keep scrolling ↓</a>
+  </div>
+</main>
+
+<!-- ============ ABOUT ============ -->
+<div id="about" class="section-block">
+<section class="page-head">
+  <div class="page-head-inner">
+    <p class="page-kicker">01 — about</p>
+    <h1 class="page-title">About</h1>
+  </div>
+</section>
+
+<section class="essay">
+  <div class="essay-inner">
+    <p class="lede">I build complete, working projects rather than tutorials — a coding interview platform, a banking backend, a multiplayer game. Each one taught me something a course didn't.</p>
+
+    <p>I'm finishing a B.Tech in Computer Science Engineering (AI specialization) and looking for an entry-level Software Developer or Full Stack Developer role. My stack is MERN — React and Redux up front, Node and Express behind, MongoDB underneath.</p>
+
+    <table class="field-table">
+      <tr><td>Studying</td><td>B.Tech CSE (AI Specialization) — expected July 2026</td></tr>
+      <tr><td>Building with</td><td>React, Node.js, Express.js, MongoDB, Redux</td></tr>
+      <tr><td>Practicing</td><td>Data structures & algorithms on LeetCode</td></tr>
+      <tr><td>Open to</td><td>Entry-level Software Developer / Full Stack roles</td></tr>
+    </table>
+
+    <p>Full details — coursework, certifications, the stack per project — are on the <a class="underline-link" href="#resume">résumé</a>. The work itself is on the <a class="underline-link" href="#projects">projects</a> page.</p>
+  </div>
+</section>
+
+</div>
+
+<!-- ============ PROJECTS ============ -->
+<div id="projects" class="section-block">
+<section class="page-head">
+  <div class="page-head-inner">
+    <p class="page-kicker">02 — projects</p>
+    <h1 class="page-title">Projects</h1>
+    <p class="page-dek">A working record, not a highlight reel. Each entry includes what the system does, what it's built with, and where to read further.</p>
+  </div>
+</section>
+
+<section class="entries">
+  <div class="entries-inner">
+
+    <article class="entry">
+      <div class="entry-head">
+        <h2 class="entry-title">Talent-TS — Real-Time Coding Interview Platform</h2>
+        <span class="entry-year">2026</span>
+      </div>
+      <ul class="entry-list">
+        <li>In-browser code editor (VS Code-style) executing JavaScript, Python, and Java in an isolated sandbox with automated test-case evaluation.</li>
+        <li>Clerk authentication and protected REST APIs, with Inngest handling background workflows that sync data across MongoDB and Stream.</li>
+        <li>Live video, screen sharing, session recording, and chat via the Stream SDK — a session locks automatically once two people join.</li>
+        <li>Responsive, resizable multi-panel React/Tailwind frontend, deployed behind a single Express server.</li>
+      </ul>
+      <p class="entry-stack"><span>React.js</span><span>Node.js</span><span>Express.js</span><span>MongoDB</span><span>Tailwind CSS</span><span>TanStack Query</span><span>Clerk</span><span>Stream</span><span>Inngest</span></p>
+      <div class="entry-links">
+        <a class="link-btn" href="https://github.com/tejas-cs" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="entry-head">
+        <h2 class="entry-title">Ledger-Based Banking Transaction System</h2>
+        <span class="entry-year">2025</span>
+      </div>
+      <ul class="entry-list">
+        <li>Double-entry ledger accounting — every transfer writes immutable debit/credit entries as the source of truth for balances.</li>
+        <li>Atomic multi-step transfers via MongoDB transactions, guarded by idempotency keys against duplicate requests.</li>
+        <li>Aggregation pipelines compute balances from ledger history in real time.</li>
+        <li>JWT auth with bcrypt hashing and a TTL-indexed token blacklist for secure logout; Nodemailer sends transfer/registration emails.</li>
+      </ul>
+      <p class="entry-stack"><span>Node.js</span><span>Express.js</span><span>MongoDB</span><span>Mongoose</span><span>JWT</span><span>bcrypt</span><span>Nodemailer</span></p>
+      <div class="entry-links">
+        <a class="link-btn" href="https://github.com/tejas-cs" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="entry-head">
+        <h2 class="entry-title">Real-Time Multiplayer Chess</h2>
+        <span class="entry-year">2025</span>
+      </div>
+      <ul class="entry-list">
+        <li>Socket.io auto-pairs connecting players into a room, assigning White, Black, or Spectator.</li>
+        <li>Chess.js handles server-side move validation and turn enforcement.</li>
+        <li>Board state and moves broadcast live over WebSockets, with drag-and-drop movement on the client.</li>
+      </ul>
+      <p class="entry-stack"><span>Node.js</span><span>Express.js</span><span>Socket.io</span><span>Chess.js</span><span>EJS</span></p>
+      <div class="entry-links">
+        <a class="link-btn" href="https://github.com/tejas-cs" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+</div>
+
+<!-- ============ RESUME ============ -->
+<div id="resume" class="section-block">
+<div class="resume-print-header">
+  <h1>Tejas Sharma</h1>
+  <p class="resume-print-role">Full Stack Developer — B.Tech CSE (AI Specialization), expected Jul 2026</p>
+  <p class="resume-print-contact">github.com/tejas-cs &nbsp;·&nbsp; linkedin.com/in/tejas-sharma &nbsp;·&nbsp; leetcode.com/u/Tejas-Cs</p>
+</div>
+<section class="page-head">
+  <div class="page-head-inner">
+    <p class="page-kicker">05 — résumé</p>
+    <h1 class="page-title">Résumé</h1>
+    <p class="page-dek">Education, skills, projects, and certifications. Use the print button below for an A4-formatted, chrome-free copy.</p>
+  </div>
+</section>
+
+<section class="resume">
+  <div class="resume-inner">
+
+    <div class="resume-section">
+      <h2 class="resume-section-title">Education</h2>
+      <div class="resume-item">
+        <div class="resume-item-head">
+          <div><span class="resume-role">B.Tech, Computer Science Engineering (AI Specialization)</span> — <span class="resume-org">Dr. A.P.J. Abdul Kalam Technical University</span></div>
+          <span class="resume-date">Expected Jul 2026</span>
+        </div>
+        <ul>
+          <li>CGPA: 7.5 / 10</li>
+          <li>Relevant coursework: DBMS, Software Engineering, Operating Systems, Algorithms, Artificial Intelligence, Data Structures</li>
+        </ul>
+      </div>
+      <div class="resume-item">
+        <div class="resume-item-head">
+          <div><span class="resume-role">Senior Secondary (Grade 12) — Science, PCM</span> — <span class="resume-org">Gateway International School, CBSE</span></div>
+          <span class="resume-date">Mar 2021 — Apr 2022</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="resume-section">
+      <h2 class="resume-section-title">Technical Skills</h2>
+      <dl class="skills-grid">
+        <dt>Languages</dt><dd>JavaScript (ES6+), HTML5, CSS3, Node.js, C++, C</dd>
+        <dt>Frontend</dt><dd>React.js, Redux, Responsive Web Design, REST APIs</dd>
+        <dt>Backend</dt><dd>Node.js, Express.js, RESTful API Design, JWT, Clerk</dd>
+        <dt>Databases</dt><dd>MongoDB, Mongoose, MySQL</dd>
+        <dt>Tools &amp; DevOps</dt><dd>Git, GitHub, Insomnia</dd>
+        <dt>Core Concepts</dt><dd>OOPS, DBMS, Operating Systems, Agile/SDLC</dd>
+      </dl>
+    </div>
+
+    <div class="resume-section">
+      <h2 class="resume-section-title">Projects</h2>
+      <div class="resume-item">
+        <div class="resume-item-head">
+          <div><span class="resume-role">Talent-TS — Real-Time Coding Interview Platform</span></div>
+          <span class="resume-date">2026</span>
+        </div>
+        <ul><li>MERN app for live coding interviews with an in-browser code editor (JS/Python/Java sandbox), Clerk auth, Inngest workflows, and Stream-powered video, chat, and room-locking.</li></ul>
+      </div>
+      <div class="resume-item">
+        <div class="resume-item-head">
+          <div><span class="resume-role">Ledger-Based Banking Transaction System</span></div>
+          <span class="resume-date">2025</span>
+        </div>
+        <ul><li>Double-entry ledger backend with atomic MongoDB transactions, idempotency keys, JWT auth with token blacklisting, and automated email notifications.</li></ul>
+      </div>
+      <div class="resume-item">
+        <div class="resume-item-head">
+          <div><span class="resume-role">Real-Time Multiplayer Chess</span></div>
+          <span class="resume-date">2025</span>
+        </div>
+        <ul><li>Two-player chess app with Socket.io room auto-pairing, Chess.js server-side move validation, and live board sync over WebSockets.</li></ul>
+      </div>
+      <p class="resume-web-only"><a class="underline-link" href="#projects">See the full projects section →</a></p>
+    </div>
+
+    <div class="resume-section">
+      <h2 class="resume-section-title">Certifications</h2>
+      <p>MongoDB Certification · Deloitte Job Simulation (Forage) · Introduction to AI — IBM (2023) · Web Development (Infosys) · JPMorgan Chase Job Simulation (Forage) · SQL and Relational Databases (IBM)</p>
+    </div>
+
+    <div class="resume-section">
+      <h2 class="resume-section-title">Key Areas</h2>
+      <p>Software Development · Full Stack Development · MERN Developer · Backend Development · Frontend Development · Web Development · REST API Development · Real-Time Applications</p>
+    </div>
+
+  </div>
+
+  <p class="print-note">
+    <a class="btn" href="Tejas-Sharma-Resume.pdf" target="_blank" rel="noopener">Open Résumé PDF</a>
+  </p>
+</section>
+
+</div>
+
+<!-- ============ CONTACT ============ -->
+<div id="contact" class="section-block">
+<section class="page-head">
+  <div class="page-head-inner">
+    <p class="page-kicker">06 — contact</p>
+    <h1 class="page-title">Contact</h1>
+    <p class="page-dek">LinkedIn is the most reliable way to reach me. GitHub and LeetCode for the actual work.</p>
+  </div>
+</section>
+
+<section class="contact-section">
+  <div class="contact-grid">
+    <div class="contact-row">
+      <span class="contact-label">GitHub</span>
+      <a class="underline-link" href="https://github.com/tejas-cs" target="_blank" rel="noopener">github.com/tejas-cs</a>
+    </div>
+    <div class="contact-row">
+      <span class="contact-label">LinkedIn</span>
+      <a class="underline-link" href="https://www.linkedin.com/in/tejas-sharma-a840611b8/" target="_blank" rel="noopener">linkedin.com/in/tejas-sharma</a>
+    </div>
+    <div class="contact-row">
+      <span class="contact-label">LeetCode</span>
+      <a class="underline-link" href="https://leetcode.com/u/Tejas-Cs/" target="_blank" rel="noopener">leetcode.com/u/Tejas-Cs</a>
+    </div>
+    <div class="contact-row">
+      <span class="contact-label">Status</span>
+      <span>Graduating Jul 2026 — open to entry-level roles</span>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <div class="footer-name">Tejas Sharma</div>
+      <div class="footer-role">Full Stack Developer</div>
+    </div>
+    <div class="footer-meta">Built with Next.js and Tailwind CSS.</div>
+    <div class="footer-links">
+      <a href="https://github.com/tejas-cs" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/tejas-sharma-a840611b8/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://leetcode.com/u/Tejas-Cs/" target="_blank" rel="noopener">LeetCode</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hasHidden = false;
+
+  function hidePreloader() {
+    if (hasHidden) return;
+    hasHidden = true;
+    var preloader = document.getElementById('preloader');
+    var home = document.getElementById('home');
+    if (home) home.classList.add('reveal');
+    if (!preloader) return;
+    preloader.classList.add('hide');
+    setTimeout(function () {
+      preloader.style.display = 'none';
+    }, 750);
+  }
+
+  if (reduceMotion) {
+    document.addEventListener('DOMContentLoaded', hidePreloader);
+  } else {
+    // Give the welcome moment a brief, deliberate minimum duration
+    // rather than tying it strictly to asset load time.
+    window.addEventListener('load', function () {
+      setTimeout(hidePreloader, 900);
+    });
+    // Safety net in case the load event fires late or never fires.
+    setTimeout(hidePreloader, 3200);
+  }
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  var toggle = document.querySelector('.nav-toggle');
+  var nav = document.querySelector('.site-nav');
+  var navLinks = Array.prototype.slice.call(nav.querySelectorAll('a'));
+  var underline = nav.querySelector('.nav-underline');
+  var sectionIds = ['about', 'projects', 'resume', 'contact'];
+  var sections = sectionIds
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+
+  function positionUnderline(link) {
+    if (!underline) return;
+    if (!link) {
+      underline.classList.remove('visible');
+      return;
+    }
+    var label = link.querySelector('.nav-label') || link;
+    var labelRect = label.getBoundingClientRect();
+    // A zero-size rect means the label (or an ancestor, e.g. a closed
+    // mobile dropdown) isn't actually rendered right now — nothing to
+    // measure against, so just hide the indicator instead of drawing
+    // it at a stale or bogus position.
+    if (labelRect.width === 0 && labelRect.height === 0) {
+      underline.classList.remove('visible');
+      return;
+    }
+    var navRect = nav.getBoundingClientRect();
+    var left = Math.round(labelRect.left - navRect.left);
+    var top = Math.round(labelRect.bottom - navRect.top + 6);
+    var width = Math.round(labelRect.width);
+
+    var firstReveal = !underline.classList.contains('visible');
+    if (firstReveal) {
+      // Jump straight to the right spot instead of transitioning left/top/
+      // width — otherwise the very first appearance animates in from the
+      // underline's CSS default position (0,0), sliding in from the left
+      // edge of the nav before it ever shows the correct place.
+      underline.style.transition = 'opacity 0.25s ease, background-color 0.4s ease';
+    }
+    underline.style.left = left + 'px';
+    underline.style.top = top + 'px';
+    underline.style.width = width + 'px';
+    if (firstReveal) {
+      underline.offsetWidth; // force layout so the jump above is committed
+      underline.style.transition = '';
+    }
+    underline.classList.add('visible');
+  }
+
+  function setActive(id) {
+    var matched = null;
+    navLinks.forEach(function (link) {
+      var isMatch = link.getAttribute('href') === '#' + id;
+      link.classList.toggle('active', isMatch);
+      if (isMatch) matched = link;
+    });
+    positionUnderline(matched);
+  }
+
+  toggle.addEventListener('click', function () {
+    nav.classList.toggle('open');
+    var isOpen = nav.classList.contains('open');
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    toggle.textContent = isOpen ? 'close' : 'menu';
+    var current = navLinks.filter(function (l) { return l.classList.contains('active'); })[0];
+    positionUnderline(current);
+  });
+
+  // While true, scroll-driven updates pause so a clicked link's highlight
+  // isn't immediately overridden by sections it scrolls past en route.
+  var suppressActive = false;
+  var resumeTimer = null;
+
+  navLinks.forEach(function (link) {
+    link.addEventListener('click', function () {
+      link.blur();
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.textContent = 'menu';
+
+      var targetId = link.getAttribute('href').replace('#', '');
+      if (sectionIds.indexOf(targetId) !== -1) {
+        setActive(targetId);
+        currentActiveId = targetId;
+        suppressActive = true;
+        // Shared (not per-link) so clicking a different link before the
+        // previous one's timer fires correctly resets the whole window —
+        // otherwise the earlier timer could still fire mid-transit and
+        // yank the underline to wherever the page happened to be scrolling.
+        window.clearTimeout(resumeTimer);
+        resumeTimer = window.setTimeout(function () {
+          suppressActive = false;
+          // Resync immediately rather than waiting for the next scroll event —
+          // otherwise a section change that happened while suppressed (e.g. the
+          // user kept scrolling right after clicking) could be missed entirely,
+          // leaving the previous link highlighted indefinitely.
+          syncActiveFromScroll();
+        }, 900);
+      }
+    });
+  });
+
+  // Which section currently sits across the reference line (mid-viewport),
+  // with a bottom-of-page override so a short final section (like Contact)
+  // still gets marked active even if it never reaches that line on its own.
+  function determineActiveId() {
+    var atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4;
+    if (atBottom) return sectionIds[sectionIds.length - 1];
+
+    var refY = window.innerHeight * 0.5;
+    for (var i = 0; i < sections.length; i++) {
+      var rect = sections[i].getBoundingClientRect();
+      if (rect.top <= refY && rect.bottom >= refY) {
+        return sections[i].id;
+      }
+    }
+    return null;
+  }
+
+  var currentActiveId = null;
+
+  function syncActiveFromScroll() {
+    if (suppressActive) return;
+    var id = determineActiveId();
+    // Bail out unless the section actually changed. setActive() measures
+    // layout (getBoundingClientRect) and writes inline styles, so running
+    // it on every scroll frame forced a read/write layout cycle per frame
+    // for no visible change.
+    if (id && id !== currentActiveId) {
+      currentActiveId = id;
+      setActive(id);
+    }
+  }
+
+  // ---- header: hidden on the home section, revealed once you scroll ----
+  var header = document.querySelector('.site-header');
+  var ticking = false;
+
+  function updateHeaderVisibility() {
+    if (window.scrollY > 48) {
+      header.classList.add('visible');
+      nav.classList.add('visible');
+    } else {
+      header.classList.remove('visible');
+      nav.classList.remove('visible');
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.textContent = 'menu';
+    }
+  }
+
+  function onScrollFrame() {
+    ticking = false;
+    updateHeaderVisibility();
+    syncActiveFromScroll();
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      window.requestAnimationFrame(onScrollFrame);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  var resizeTicking = false;
+  window.addEventListener('resize', function () {
+    if (resizeTicking) return;
+    resizeTicking = true;
+    window.requestAnimationFrame(function () {
+      resizeTicking = false;
+      var current = navLinks.filter(function (l) { return l.classList.contains('active'); })[0];
+      positionUnderline(current);
+    });
+  });
+
+  updateHeaderVisibility();
+  syncActiveFromScroll();
+
+  // ---- theme toggle: defaults to dark, switches to light and back ----
+  var themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function () {
+      var root = document.documentElement;
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) { /* see note above */ }
+      themeToggle.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false');
+      themeToggle.setAttribute('aria-label', next === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+    });
+  }
+
+  // ---- signature: redraw every 30s while it's actually on screen ----
+  var sigMark = document.querySelector('.sig-logo-mark');
+  if (sigMark) {
+    var REPLAY_MS = 20000;
+    var desktop = window.matchMedia('(min-width: 1024px)');
+    var calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var inView = true;
+    var timer = null;
+
+    function canDraw() {
+      return desktop.matches && !calm.matches && inView &&
+             document.visibilityState === 'visible';
+    }
+
+    function draw() {
+      if (!canDraw()) return;
+      // Restart the CSS animation: drop the class, force the browser to
+      // flush that change, then re-add it. Without the reflow in between
+      // the class swap is coalesced and no replay happens.
+      sigMark.classList.remove('drawing');
+      void sigMark.offsetWidth;
+      sigMark.classList.add('drawing');
+    }
+
+    function start() {
+      if (timer !== null) return;
+      timer = window.setInterval(draw, REPLAY_MS);
+    }
+
+    function stop() {
+      if (timer === null) return;
+      window.clearInterval(timer);
+      timer = null;
+    }
+
+    // Pause the cycle whenever the mark leaves the viewport, so a
+    // backgrounded or scrolled-away page isn't animating for no one.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        inView = entries[0].isIntersecting;
+        if (inView && canDraw()) { start(); } else { stop(); }
+      }, { threshold: 0 }).observe(sigMark);
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (canDraw()) { start(); } else { stop(); }
+    });
+
+    // Viewport can cross the 1024px line at any time.
+    var onQuery = function () {
+      if (canDraw()) { start(); } else { stop(); sigMark.classList.remove('drawing'); }
+    };
+    if (desktop.addEventListener) { desktop.addEventListener('change', onQuery); }
+    else if (desktop.addListener) { desktop.addListener(onQuery); }
+
+    // First pass runs once the welcome screen has cleared, so the draw
+    // isn't happening behind the preloader where nobody can see it.
+    window.setTimeout(function () { draw(); start(); }, 1800);
+  }
+});
+</script>
+
+</body>
+</html>
